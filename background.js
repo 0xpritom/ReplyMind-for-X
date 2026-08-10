@@ -1,6 +1,32 @@
+const casualWordBank = [
+    "honestly", "literally", "actually", "basically", "kinda", "sorta", "tbh", "imo", "ngl", 
+    "fr", "tho", "yep", "nope", "yeah", "nah", "yup", "btw", "haha", "lol", "damn", "bro", 
+    "dude", "man", "guys", "fam", "folks", "mate", "wild", "crazy", "insane", "valid", 
+    "based", "lowkey", "highkey", "deadass", "bruh", "100%", "facts", 
+    "big facts", "no cap", "vibes", "fire", "dope", "sick", "legendary", "epic", 
+    "goat", "bet", "word", "real", "true", "exactly", "spot on", 
+    "nailed it", "frfr", "iykyk", "bullish", "bearish", "gem", 
+    "alpha", "frens", "anon", "degens", "normies", "wagmi", "ngmi", "fud", "fomo", 
+    "rekt", "moon", "lfg", "gm", "gn", "ser", 
+    "based", "chad", "ape", "grind", "sheesh",
+    "yikes", "oof", "rip", "gg", "af", "rn", "atm", "omg",
+    "lmao", "smh", "nvm", "idk", "idc", "imho", "tldr", "fyi", "def", "totes", "obvs", "probs", "srsly",
+    "legit", "literally", "basically", "essentially", "apparently",
+    "obviously", "definitely", "absolutely", "totally", "completely",
+    "wow", "whoa", "woah", "jeez", "heck",
+    "yo", "hey", "sup", "peace",
+    "cya", "later", "cheers", "thx", "ty", "my bad", "mb", "cool", "nice", "sweet", "awesome",
+    "amazing", "great", "okay",
+    "ok", "k", "kk", "alright", "aight", "sure", "fine", "whatever", "anyways",
+    "like", "just", "really", "very", "so",
+    "way", "crazy", "insane", "wild", "mad", "nutty", "ridiculous",
+    "unreal", "epic",
+    "legendary", "god tier", "top tier", "mid"
+];
+
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
     if (request.action === 'generate') {
-        generateComment(request.text, request.lang)
+        generateComment(request.text, request.lang, request.author)
             .then(reply => sendResponse({ reply }))
             .catch(error => sendResponse({ error: error.message }));
         return true;
@@ -14,7 +40,7 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
     }
 });
 
-async function generateComment(text, langCode) {
+async function generateComment(text, langCode, authorHandle) {
     const data = await chrome.storage.local.get(['apiKey']);
     const apiKey = data.apiKey;
     
@@ -29,7 +55,51 @@ async function generateComment(text, langCode) {
         languageInstruction = `CRITICAL RULE: You must write the comment in the EXACT SAME LANGUAGE as the original post.`;
     }
     
-    const prompt = `Act as a normal Twitter user. Write a direct, human-like comment responding to the following post. Do not provide explanations, meta-commentary, or enclose the comment in quotes. Just output the comment text itself. The comment must be between 5 and 10 words. ${languageInstruction} Do not use hashtags. Keep it natural. Post: "${text}"`;
+    // (Removed old contradictory mentionInstruction logic)
+    
+    const lengthVariations = [
+        "Keep the comment short and punchy, around 4 to 8 words.",
+        "Keep the comment moderate in length, around 8 to 12 words.",
+        "Keep the comment slightly detailed, around 12 to 16 words."
+    ];
+    const randomLengthInstruction = lengthVariations[Math.floor(Math.random() * lengthVariations.length)];
+    
+    let authorInstruction = "";
+    if (authorHandle && Math.random() < 0.30) {
+        const firstName = authorHandle.split(' ')[0];
+        authorInstruction = `CRITICAL RULE: You MUST start your comment by casually addressing the poster by their first name: "${firstName}" (e.g. "${firstName}, tbh this is wild"). NEVER put their name in the middle or at the end. NEVER put an '@' symbol before their name.`;
+    }
+    
+    const shuffledWords = casualWordBank.sort(() => 0.5 - Math.random());
+    const randomWords = shuffledWords.slice(0, 6).join(", ");
+    
+    // Extract @mentions from the text to enforce their usage
+    const projectMentions = (text || "").match(/@\w+/g);
+    let exactMentionRule = "Do not use the '@' symbol or any @usernames in your reply.";
+    if (projectMentions && projectMentions.length > 0) {
+        if (Math.random() < 0.20) {
+            const uniqueMentions = [...new Set(projectMentions)].join(', ');
+            const exampleMention = projectMentions[0];
+            exactMentionRule = `\nCRITICAL RULE ABOUT PROJECTS: The original post tags these specific handles: ${uniqueMentions}. You MUST casually mention the project in your reply. When you do, YOU ABSOLUTELY MUST INCLUDE THE '@' SYMBOL. For example, write "${exampleMention}". DO NOT write the name without the '@'. DO NOT use any other @usernames.`;
+        }
+    }
+    
+    const prompt = `Act as a regular, everyday Twitter user casually scrolling through your feed. The posts in your feed are heavily project-related. Write a 'mindshare' style comment that adds real value or shares a thoughtful opinion about the core idea or project in the post.
+
+CRITICAL RULES FOR HUMAN-LIKE REPLIES:
+1. Meaningful but Casual: You MUST provide an actual insight or relevant opinion about the project/topic. DO NOT just write an empty reaction like "damn bro this is crazy". However, your insight MUST be written in an extremely casual, lazy, internet-native tone.
+2. Vocabulary: DO NOT use formal or AI-like vocabulary (e.g., 'insightful', 'delve', 'realm', 'crucial', 'testament'). Write like a real, everyday human on Crypto/Tech Twitter. 
+IMPORTANT: Never start your comments with the same word repeatedly (do NOT always start with 'Tbh', 'Honestly', or 'Bro'). Use varied, natural sentence structures and a casual vibe.
+Optional Vibe Check: If it feels completely natural, you may casually use words similar to these: [ ${randomWords} ]. But DO NOT force them. Just adopt their casual vibe.
+3. Mindshare & Projects: Casually react to the main project or topic. ${exactMentionRule}
+4. Tone: Keep it conversational, raw, and direct. Do not sound like an analytical essay.
+5. Formatting & Punctuation: Keep formatting extremely lazy. DO NOT use commas (,), hyphens (-), or underscores (_). Start with a lowercase letter and use no final period. Do not provide explanations or enclose the comment in quotes.
+6. ${randomLengthInstruction} 
+7. ${languageInstruction} 
+8. ${authorInstruction}
+9. Do not use hashtags. 
+
+Post: "${text}"`;
     
     try {
         const response = await fetch(url, {
@@ -55,6 +125,12 @@ async function generateComment(text, langCode) {
         
         if (comment.startsWith('"') && comment.endsWith('"')) {
             comment = comment.substring(1, comment.length - 1);
+        }
+        
+        comment = comment.replace(/[.。]+$/, '').trim();
+        
+        if (comment.length > 0) {
+            comment = comment.charAt(0).toUpperCase() + comment.slice(1);
         }
 
         return comment;

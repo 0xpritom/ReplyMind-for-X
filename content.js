@@ -2,6 +2,7 @@ let isEnabled = false;
 let isRunning = false;
 let statusBox = null;
 let japaneseOnly = false;
+let likeMode = false;
 
 // --- Visual UI Setup ---
 function createStatusUI() {
@@ -101,9 +102,10 @@ function simulateClick(element) {
 // Load settings on startup
 let repliedHistory = [];
 
-chrome.storage.local.get(['enabled', 'repliedHistory', 'japaneseOnly'], (res) => {
+chrome.storage.local.get(['enabled', 'repliedHistory', 'japaneseOnly', 'likeMode'], (res) => {
     isEnabled = res.enabled || false;
     japaneseOnly = res.japaneseOnly || false;
+    likeMode = res.likeMode || false;
     repliedHistory = res.repliedHistory || [];
     if (isEnabled && !isRunning) startBot();
 });
@@ -116,6 +118,9 @@ chrome.storage.onChanged.addListener((changes) => {
     }
     if (changes.japaneseOnly !== undefined) {
         japaneseOnly = changes.japaneseOnly.newValue;
+    }
+    if (changes.likeMode !== undefined) {
+        likeMode = changes.likeMode.newValue;
     }
 });
 
@@ -177,6 +182,12 @@ async function startBot() {
                     }
                 }
                 
+                let authorName = null;
+                const userNameEl = tweet.querySelector('div[data-testid="User-Name"]');
+                if (userNameEl) {
+                    authorName = userNameEl.innerText.split('\n')[0].trim();
+                }
+                
                 if (loggedInUserHandle && authorHandle === loggedInUserHandle) {
                     updateStatus("Skipping: This is my own post.", tweet);
                     continue; 
@@ -186,6 +197,13 @@ async function startBot() {
                     // We already interacted with this post in the past
                     updateStatus("Skipping: Already interacted with this post in the past.", tweet);
                     continue; // No need for delay here, just skip instantly
+                }
+                
+                // Check if already liked (indicates we likely already interacted with it)
+                const unlikeBtn = tweet.querySelector('[data-testid="unlike"]');
+                if (unlikeBtn) {
+                    updateStatus("Skipping: Post is already liked.", tweet);
+                    continue;
                 }
                 
                 const textElement = tweet.querySelector('div[data-testid="tweetText"]');
@@ -221,25 +239,14 @@ async function startBot() {
                 const readingTime = Math.min(2500, tweetText.length * 15);
                 await randomDelay(readingTime, readingTime + 1500);
 
-                // --- Random Skipping Logic ---
-                // Simulate a real user reading their feed and choosing not to engage with every post
-                if (Math.random() < 0.25) { // 25% chance to just read and skip
-                    updateStatus(`Read the tweet, but deciding to just scroll past...`, tweet);
-                    if (postUrl) {
-                        repliedHistory.push(postUrl);
-                        if (repliedHistory.length > 500) repliedHistory.shift(); // Keep only last 500
-                        chrome.storage.local.set({ repliedHistory: repliedHistory });
-                    }
-                    await randomDelay(1500, 3500);
-                    continue;
-                }
+
 
                 updateStatus(`Thinking of a reply using Grok AI...`, tweet);
                 
                 let replyText = null;
                 try {
                     replyText = await new Promise((resolve, reject) => {
-                        chrome.runtime.sendMessage({ action: 'generate', text: tweetText, lang: tweetLang }, (response) => {
+                        chrome.runtime.sendMessage({ action: 'generate', text: tweetText, lang: tweetLang, author: authorName }, (response) => {
                             if (chrome.runtime.lastError) reject(new Error(chrome.runtime.lastError.message));
                             else if (response && response.error) reject(new Error(response.error));
                             else resolve(response.reply);
@@ -262,6 +269,20 @@ async function startBot() {
 
                 const replyBtn = tweet.querySelector('[data-testid="reply"]');
                 if (replyBtn) {
+                    if (likeMode) {
+                        const likeBtn = tweet.querySelector('[data-testid="like"]');
+                        if (likeBtn) {
+                            updateStatus(`Clicking like button...`, tweet);
+                            simulateClick(likeBtn);
+                            await randomDelay(500, 1000);
+                        } else {
+                            const unlikeBtn = tweet.querySelector('[data-testid="unlike"]');
+                            if (unlikeBtn) {
+                                updateStatus(`Already liked.`, tweet);
+                            }
+                        }
+                    }
+
                     updateStatus(`Clicking reply button...`, tweet);
                     simulateClick(replyBtn);
                     
