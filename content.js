@@ -296,19 +296,13 @@ async function startBot() {
                         textBox.focus();
                         await randomDelay(200, 400);
                         
-                        const pasted = document.execCommand('insertText', false, replyText);
-                        
-                        if (!pasted) {
-                            const dataTransfer = new DataTransfer();
-                            dataTransfer.setData('text/plain', replyText);
-                            textBox.dispatchEvent(new ClipboardEvent('paste', {
-                                clipboardData: dataTransfer,
-                                bubbles: true,
-                                cancelable: true
-                            }));
-                        }
-                        
-                        textBox.dispatchEvent(new Event('input', { bubbles: true }));
+                        const dataTransfer = new DataTransfer();
+                        dataTransfer.setData('text/plain', replyText);
+                        textBox.dispatchEvent(new ClipboardEvent('paste', {
+                            clipboardData: dataTransfer,
+                            bubbles: true,
+                            cancelable: true
+                        }));
                         
                         await randomDelay(500, 1000);
                         
