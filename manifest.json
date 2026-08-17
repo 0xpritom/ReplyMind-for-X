@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
-  "name": "Global Auto-Reply",
-  "version": "1.0",
+  "name": "X Auto commenter",
+  "version": "2.2",
   "description": "Automatically reads your X feed and posts human-like replies using AI.",
   "permissions": ["storage", "tabs"],
   "host_permissions": [

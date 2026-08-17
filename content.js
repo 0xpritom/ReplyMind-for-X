@@ -33,7 +33,7 @@ function createStatusUI() {
     `;
     
     const title = document.createElement('div');
-    title.innerHTML = '✨ <b>Global Auto-Reply v2.1</b>';
+    title.innerHTML = '✨ <b>X Auto commenter v2.2</b>';
     title.style.marginBottom = '12px';
     title.style.fontSize = '1.1rem';
     title.style.fontWeight = '800';
@@ -239,14 +239,22 @@ async function startBot() {
                 const readingTime = Math.min(2500, tweetText.length * 15);
                 await randomDelay(readingTime, readingTime + 1500);
 
-
+                let isReply = false;
+                if (window.location.pathname.includes('/status/') && postUrl) {
+                    const currentStatusMatch = window.location.pathname.match(/\/status\/(\d+)/);
+                    const postStatusMatch = postUrl.match(/\/status\/(\d+)/);
+                    if (currentStatusMatch && postStatusMatch && currentStatusMatch[1] !== postStatusMatch[1]) {
+                        isReply = true;
+                    }
+                }
+                const wordCount = tweetText.trim().split(/\s+/).length;
 
                 updateStatus(`Thinking of a reply using Grok AI...`, tweet);
                 
                 let replyText = null;
                 try {
                     replyText = await new Promise((resolve, reject) => {
-                        chrome.runtime.sendMessage({ action: 'generate', text: tweetText, lang: tweetLang, author: authorName }, (response) => {
+                        chrome.runtime.sendMessage({ action: 'generate', text: tweetText, lang: tweetLang, author: authorName, isReply: isReply, wordCount: wordCount }, (response) => {
                             if (chrome.runtime.lastError) reject(new Error(chrome.runtime.lastError.message));
                             else if (response && response.error) reject(new Error(response.error));
                             else resolve(response.reply);
@@ -269,37 +277,38 @@ async function startBot() {
 
                 const replyBtn = tweet.querySelector('[data-testid="reply"]');
                 if (replyBtn) {
-                    if (likeMode) {
-                        const likeBtn = tweet.querySelector('[data-testid="like"]');
-                        if (likeBtn) {
-                            updateStatus(`Clicking like button...`, tweet);
-                            simulateClick(likeBtn);
-                            await randomDelay(500, 1000);
-                        } else {
-                            const unlikeBtn = tweet.querySelector('[data-testid="unlike"]');
-                            if (unlikeBtn) {
-                                updateStatus(`Already liked.`, tweet);
-                            }
-                        }
-                    }
 
                     updateStatus(`Clicking reply button...`, tweet);
                     simulateClick(replyBtn);
                     
-                    await randomDelay(1000, 1500); 
+                    // CRITICAL: Wait for Twitter's modal fade-in animation to finish!
+                    await randomDelay(800, 1200);
                     
-                    const textBox = document.querySelector('[data-testid="tweetTextarea_0"]');
+                    let textBox = null;
+                    for (let i = 0; i < 20; i++) { // Poll every 500ms for up to 10 seconds
+                        textBox = document.querySelector('[data-testid="tweetTextarea_0"]');
+                        if (textBox) break;
+                        await sleep(500);
+                    }
+                    
                     if (textBox) {
                         updateStatus(`Typing reply...`, tweet);
                         textBox.focus();
+                        await randomDelay(200, 400);
                         
-                        const dataTransfer = new DataTransfer();
-                        dataTransfer.setData('text/plain', replyText);
-                        textBox.dispatchEvent(new ClipboardEvent('paste', {
-                            clipboardData: dataTransfer,
-                            bubbles: true,
-                            cancelable: true
-                        }));
+                        const pasted = document.execCommand('insertText', false, replyText);
+                        
+                        if (!pasted) {
+                            const dataTransfer = new DataTransfer();
+                            dataTransfer.setData('text/plain', replyText);
+                            textBox.dispatchEvent(new ClipboardEvent('paste', {
+                                clipboardData: dataTransfer,
+                                bubbles: true,
+                                cancelable: true
+                            }));
+                        }
+                        
+                        textBox.dispatchEvent(new Event('input', { bubbles: true }));
                         
                         await randomDelay(500, 1000);
                         
@@ -320,6 +329,22 @@ async function startBot() {
                                     repliedHistory: repliedHistory 
                                 });
                             });
+                            
+                            await randomDelay(1500, 2500); // Wait for modal to close
+                            
+                            if (likeMode) {
+                                const likeBtn = tweet.querySelector('[data-testid="like"]');
+                                if (likeBtn) {
+                                    updateStatus(`Clicking like button...`, tweet);
+                                    simulateClick(likeBtn);
+                                    await randomDelay(500, 1000);
+                                } else {
+                                    const unlikeBtn = tweet.querySelector('[data-testid="unlike"]');
+                                    if (unlikeBtn) {
+                                        updateStatus(`Already liked.`, tweet);
+                                    }
+                                }
+                            }
                             
                         } else {
                             updateStatus(`Error: Send button not found or disabled. Opening feed in a new tab...`, tweet);

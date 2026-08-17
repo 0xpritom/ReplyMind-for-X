@@ -26,7 +26,7 @@ const casualWordBank = [
 
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
     if (request.action === 'generate') {
-        generateComment(request.text, request.lang, request.author)
+        generateComment(request.text, request.lang, request.author, request.isReply, request.wordCount)
             .then(reply => sendResponse({ reply }))
             .catch(error => sendResponse({ error: error.message }));
         return true;
@@ -40,7 +40,7 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
     }
 });
 
-async function generateComment(text, langCode, authorHandle) {
+async function generateComment(text, langCode, authorHandle, isReply, wordCount) {
     const data = await chrome.storage.local.get(['apiKey']);
     const apiKey = data.apiKey;
     
@@ -57,12 +57,20 @@ async function generateComment(text, langCode, authorHandle) {
     
     // (Removed old contradictory mentionInstruction logic)
     
-    const lengthVariations = [
-        "Keep the comment short and punchy, around 4 to 8 words.",
-        "Keep the comment moderate in length, around 8 to 12 words.",
-        "Keep the comment slightly detailed, around 12 to 16 words."
-    ];
-    const randomLengthInstruction = lengthVariations[Math.floor(Math.random() * lengthVariations.length)];
+    let randomLengthInstruction = "";
+    if (isReply && wordCount > 0) {
+        const targetWords = Math.max(2, Math.floor(wordCount / 2));
+        const minWords = Math.max(2, targetWords - 2);
+        const maxWords = targetWords + 2;
+        randomLengthInstruction = `CRITICAL RULE FOR REPLIES: You are replying to a comment. Your reply MUST be approximately HALF the length of the comment you are replying to. The comment is ${wordCount} words long, so your reply MUST be strictly between ${minWords} and ${maxWords} words.`;
+    } else {
+        const lengthVariations = [
+            "Keep the comment short and punchy, around 4 to 8 words.",
+            "Keep the comment moderate in length, around 8 to 12 words.",
+            "Keep the comment slightly detailed, around 12 to 16 words."
+        ];
+        randomLengthInstruction = lengthVariations[Math.floor(Math.random() * lengthVariations.length)];
+    }
     
     let authorInstruction = "";
     if (authorHandle && Math.random() < 0.30) {
@@ -109,7 +117,7 @@ Post: "${text}"`;
                 'Content-Type': 'application/json'
             },
             body: JSON.stringify({
-                model: "llama-3.1-8b-instant", 
+                model: "openai/gpt-oss-20b", 
                 messages: [{ role: "user", content: prompt }],
                 temperature: 0.7
             })
