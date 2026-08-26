@@ -2,7 +2,7 @@ let isEnabled = false;
 let isRunning = false;
 let statusBox = null;
 let japaneseOnly = false;
-let likeMode = false;
+let actionMode = 'both';
 
 // --- Visual UI Setup ---
 function createStatusUI() {
@@ -33,7 +33,7 @@ function createStatusUI() {
     `;
     
     const title = document.createElement('div');
-    title.innerHTML = '✨ <b>X Auto commenter v2.2</b>';
+    title.innerHTML = '✨ <b>ReplyMind for X v2.2</b>';
     title.style.marginBottom = '12px';
     title.style.fontSize = '1.1rem';
     title.style.fontWeight = '800';
@@ -77,9 +77,9 @@ function updateStatus(message, tweetElement = null) {
         tweetElement.style.borderRadius = '16px';
         tweetElement.classList.add('x-bot-highlight');
         
-        // Ensure tweet is somewhat visible on screen
+        // Ensure tweet is somewhat visible on screen, accounting for sticky headers
         const rect = tweetElement.getBoundingClientRect();
-        if (rect.top < 0 || rect.bottom > window.innerHeight) {
+        if (rect.top < 70 || rect.bottom > window.innerHeight - 20) {
             tweetElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
         }
     }
@@ -102,10 +102,10 @@ function simulateClick(element) {
 // Load settings on startup
 let repliedHistory = [];
 
-chrome.storage.local.get(['enabled', 'repliedHistory', 'japaneseOnly', 'likeMode'], (res) => {
+chrome.storage.local.get(['enabled', 'repliedHistory', 'japaneseOnly', 'likeMode', 'actionMode'], (res) => {
     isEnabled = res.enabled || false;
     japaneseOnly = res.japaneseOnly || false;
-    likeMode = res.likeMode || false;
+    actionMode = res.actionMode || (res.likeMode ? 'both' : 'reply');
     repliedHistory = res.repliedHistory || [];
     if (isEnabled && !isRunning) startBot();
 });
@@ -119,8 +119,8 @@ chrome.storage.onChanged.addListener((changes) => {
     if (changes.japaneseOnly !== undefined) {
         japaneseOnly = changes.japaneseOnly.newValue;
     }
-    if (changes.likeMode !== undefined) {
-        likeMode = changes.likeMode.newValue;
+    if (changes.actionMode !== undefined) {
+        actionMode = changes.actionMode.newValue;
     }
 });
 
@@ -233,11 +233,56 @@ async function startBot() {
                     continue;
                 }
 
+                // Explicitly scroll tweet to the center of the screen so user can see it before action
+                tweet.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                await randomDelay(1200, 1500); // Give it time to scroll smoothly
+
+                // STRICT CHECK: Ensure tweet is still attached to DOM and visible after scrolling
+                if (!tweet.isConnected) {
+                    updateStatus("Tweet disappeared from DOM. Re-fetching...");
+                    break; // DOM changed significantly, break loop to fetch fresh tweets
+                }
+                const rect = tweet.getBoundingClientRect();
+                if (rect.top < 0 || rect.bottom > window.innerHeight) {
+                    updateStatus("Tweet not properly visible in center. Retrying...");
+                    tweet.removeAttribute('data-auto-replied');
+                    break; // Break loop and try to find a better one on next fetch
+                }
+
                 updateStatus(`Reading tweet...\n"${tweetText.substring(0, 40)}..."`, tweet);
                 
                 // Simulate human reading time based on text length, with more randomness
                 const readingTime = Math.min(2500, tweetText.length * 15);
                 await randomDelay(readingTime, readingTime + 1500);
+
+                if (actionMode === 'like') {
+                    const likeBtn = tweet.querySelector('[data-testid="like"]');
+                    if (likeBtn) {
+                        updateStatus(`Clicking like button...`, tweet);
+                        simulateClick(likeBtn);
+                        await randomDelay(500, 1000);
+                        
+                        chrome.storage.local.get(['repliedCount'], (res) => {
+                            const count = res.repliedCount || 0;
+                            if (postUrl) {
+                                repliedHistory.push(postUrl);
+                                if (repliedHistory.length > 500) repliedHistory.shift();
+                            }
+                            chrome.storage.local.set({ 
+                                repliedCount: count + 1, 
+                                repliedHistory: repliedHistory 
+                            });
+                        });
+                        
+                        updateStatus(`Like finished! Cooling down...`, tweet);
+                        window.scrollBy({ top: window.innerHeight * 0.5, behavior: 'smooth' });
+                        await randomDelay(5000, 7000);
+                    } else {
+                        updateStatus(`Already liked.`, tweet);
+                        await randomDelay(2000, 3000);
+                    }
+                    break; // Break loop to fetch fresh tweets instead of continuing with stale DOM
+                }
 
                 let isReply = false;
                 if (window.location.pathname.includes('/status/') && postUrl) {
@@ -326,7 +371,7 @@ async function startBot() {
                             
                             await randomDelay(1500, 2500); // Wait for modal to close
                             
-                            if (likeMode) {
+                            if (actionMode === 'both') {
                                 const likeBtn = tweet.querySelector('[data-testid="like"]');
                                 if (likeBtn) {
                                     updateStatus(`Clicking like button...`, tweet);
@@ -360,7 +405,11 @@ async function startBot() {
                 }
                 
                 updateStatus(`Cooling down... (Waiting 5-7s)`);
+                // Scroll down visually after a comment to adjust viewport and move to next content
+                window.scrollBy({ top: window.innerHeight * 0.6, behavior: 'smooth' });
                 await randomDelay(5000, 7000);
+                
+                break; // STRICT FIX: Break the inner loop to fetch a fresh list of tweets, preventing detached DOM errors
             }
             
         } catch (error) {
@@ -375,3 +424,4 @@ async function startBot() {
     isRunning = false;
     updateStatus("Bot stopped.");
 }
+

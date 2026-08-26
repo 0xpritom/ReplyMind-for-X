@@ -41,12 +41,20 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
 });
 
 async function generateComment(text, langCode, authorHandle, isReply, wordCount) {
-    const data = await chrome.storage.local.get(['apiKey']);
-    const apiKey = data.apiKey;
+    const data = await chrome.storage.local.get(['apiKey', 'apiKeys', 'currentApiKeyIndex']);
+    let apiKeysList = [];
+    if (data.apiKeys) {
+        apiKeysList = data.apiKeys.split(/[\r\n,]+/).map(k => k.trim()).filter(k => k);
+    } else if (data.apiKey) {
+        apiKeysList = [data.apiKey.trim()];
+    }
     
-    if (!apiKey) {
+    if (apiKeysList.length === 0) {
         throw new Error("No API key set in extension popup.");
     }
+    
+    let currentIndex = data.currentApiKeyIndex || 0;
+    if (currentIndex >= apiKeysList.length) currentIndex = 0;
 
     const url = "https://api.groq.com/openai/v1/chat/completions";
     
@@ -109,42 +117,68 @@ Optional Vibe Check: If it feels completely natural, you may casually use words 
 
 Post: "${text}"`;
     
-    try {
-        const response = await fetch(url, {
-            method: 'POST',
-            headers: {
-                'Authorization': `Bearer ${apiKey}`,
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({
-                model: "openai/gpt-oss-20b", 
-                messages: [{ role: "user", content: prompt }],
-                temperature: 0.7
-            })
-        });
+    let maxRetries = apiKeysList.length;
+    let attempt = 0;
+    let lastError = null;
+    let comment = "";
 
-        const result = await response.json();
-        
-        if (result.error) {
-            throw new Error(result.error.message);
-        }
-        
-        let comment = result.choices[0].message.content.trim();
-        
-        if (comment.startsWith('"') && comment.endsWith('"')) {
-            comment = comment.substring(1, comment.length - 1);
-        }
-        
-        comment = comment.replace(/[.。]+$/, '').trim();
-        
-        if (comment.length > 0) {
-            comment = comment.charAt(0).toUpperCase() + comment.slice(1);
-        }
+    while (attempt < maxRetries) {
+        const apiKey = apiKeysList[currentIndex];
+        try {
+            const response = await fetch(url, {
+                method: 'POST',
+                headers: {
+                    'Authorization': `Bearer ${apiKey}`,
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    model: "openai/gpt-oss-20b", 
+                    messages: [{ role: "user", content: prompt }],
+                    temperature: 0.7
+                })
+            });
 
-        return comment;
+            const result = await response.json();
+            
+            if (response.status === 429 || (result.error && result.error.message && result.error.message.toLowerCase().includes('rate limit'))) {
+                console.log(`Key at index ${currentIndex} rate limited. Switching to next key.`);
+                currentIndex = (currentIndex + 1) % apiKeysList.length;
+                await chrome.storage.local.set({ currentApiKeyIndex: currentIndex });
+                attempt++;
+                lastError = new Error(result.error ? result.error.message : "Rate limit exceeded");
+                continue;
+            }
+            
+            if (result.error) {
+                throw new Error(result.error.message);
+            }
+            
+            comment = result.choices[0].message.content.trim();
+            
+            if (comment.startsWith('"') && comment.endsWith('"')) {
+                comment = comment.substring(1, comment.length - 1);
+            }
+            
+            comment = comment.replace(/[.。]+$/, '').trim();
+            
+            if (comment.length > 0) {
+                comment = comment.charAt(0).toUpperCase() + comment.slice(1);
+            }
 
-    } catch (e) {
-        console.error("Groq API Error:", e);
-        throw e;
+            return comment;
+
+        } catch (e) {
+            console.error("Groq API Error:", e);
+            if (e.message && e.message.toLowerCase().includes('rate limit')) {
+                currentIndex = (currentIndex + 1) % apiKeysList.length;
+                await chrome.storage.local.set({ currentApiKeyIndex: currentIndex });
+                attempt++;
+                lastError = e;
+                continue;
+            }
+            throw e; // Non-rate limit error, throw immediately
+        }
     }
+    
+    throw lastError || new Error("All API keys are rate limited or failed.");
 }

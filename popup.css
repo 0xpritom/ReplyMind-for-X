@@ -1,23 +1,92 @@
+:root {
+    --bg-color: #000000;
+    --text-primary: #E7E9EA;
+    --text-secondary: #71767A;
+    --border-color: #2F3336;
+    --accent-color: #1D9BF0;
+    --card-hover: rgba(255, 255, 255, 0.03);
+    --btn-bg: #EFF3F4;
+    --btn-text: #0F1419;
+    --btn-hover: #D7DBDC;
+    --btn-active: #B9CACD;
+    --toggle-bg: #3E4144;
+    --input-bg: #000000;
+    --success-color: #00BA7C;
+    --error-color: #F4212E;
+}
+
+body.light-mode {
+    --bg-color: #FFFFFF;
+    --text-primary: #0F1419;
+    --text-secondary: #536471;
+    --border-color: #EFF3F4;
+    --card-hover: rgba(0, 0, 0, 0.03);
+    --btn-bg: #0F1419;
+    --btn-text: #FFFFFF;
+    --btn-hover: #272C30;
+    --btn-active: #3F4448;
+    --toggle-bg: #CFD9DE;
+    --input-bg: #FFFFFF;
+}
+
 body {
-    font-family: 'Inter', sans-serif;
-    width: 320px;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    width: 310px;
     margin: 0;
     padding: 0;
-    background-color: #f8fafc;
-    color: #111827;
+    background-color: var(--bg-color);
+    color: var(--text-primary);
+    overflow-x: hidden;
+    transition: background-color 0.3s ease, color 0.3s ease;
+    user-select: none;
+    cursor: default;
 }
 
 .app-container {
-    padding: 24px 20px;
+    padding: 18px 16px;
     display: flex;
     flex-direction: column;
     align-items: center;
+    min-height: 100vh;
+    box-sizing: border-box;
+    position: relative;
+}
+
+.theme-toggle-btn {
+    position: absolute;
+    top: 14px;
+    right: 14px;
+    background: rgba(245, 158, 11, 0.08);
+    border: 1px solid rgba(245, 158, 11, 0.5);
+    color: #F59E0B;
+    cursor: pointer;
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    transition: all 0.3s ease;
+    box-shadow: 0 2px 8px rgba(245, 158, 11, 0.15);
+}
+
+.theme-toggle-btn:hover {
+    background: rgba(245, 158, 11, 0.15);
+    border-color: rgba(245, 158, 11, 0.8);
+    color: #F59E0B;
+    box-shadow: 0 4px 12px rgba(245, 158, 11, 0.25);
+    transform: scale(1.05) rotate(15deg);
+}
+
+.theme-icon {
+    width: 16px;
+    height: 16px;
 }
 
 .logo-container {
     position: relative;
-    width: 64px;
-    height: 64px;
+    width: 40px;
+    height: 40px;
     margin-bottom: 12px;
     display: flex;
     justify-content: center;
@@ -26,9 +95,9 @@ body {
 
 .logo-glow {
     position: absolute;
-    width: 80px;
-    height: 80px;
-    background: radial-gradient(circle, rgba(253,224,71,0.8) 0%, rgba(253,224,71,0) 70%);
+    width: 40px;
+    height: 40px;
+    background: rgba(245, 158, 11, 0.5); /* Yellow glow */
     border-radius: 50%;
     z-index: 1;
     filter: blur(10px);
@@ -37,37 +106,49 @@ body {
 .logo-img {
     width: 100%;
     height: 100%;
-    object-fit: contain;
-    border-radius: 14px;
+    object-fit: cover;
+    border-radius: 50%; /* Round vibe */
     z-index: 2;
-    box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+    filter: invert(1) hue-rotate(180deg) brightness(1.1); /* Removes white background for dark mode */
+}
+
+body.light-mode .logo-img {
+    filter: none;
 }
 
 .app-title {
     margin: 0;
-    font-size: 1.3rem;
-    font-weight: 800;
-    color: #111827;
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: var(--text-primary);
+    letter-spacing: -0.5px;
+    transition: color 0.3s ease;
 }
 
 .app-subtitle {
-    margin: 4px 0 24px 0;
-    font-size: 0.85rem;
-    color: #64748b;
-    font-weight: 600;
+    margin: 4px 0 20px 0;
+    font-size: 0.75rem;
+    color: var(--text-secondary);
+    font-weight: 400;
+    transition: color 0.3s ease;
 }
 
 .status-card {
-    background: #ffffff;
-    border-radius: 12px;
+    background: transparent;
+    border: 1px solid var(--border-color);
+    border-radius: 14px;
     width: 100%;
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: 16px;
-    box-shadow: 0 4px 20px rgba(0,0,0,0.03);
-    margin-bottom: 20px;
+    padding: 12px 14px;
+    margin-bottom: 10px;
     box-sizing: border-box;
+    transition: background 0.2s, border-color 0.3s;
+}
+
+.status-card:hover {
+    background: var(--card-hover);
 }
 
 .status-info {
@@ -77,89 +158,112 @@ body {
 }
 
 .status-indicator {
-    width: 12px;
-    height: 12px;
+    width: 8px;
+    height: 8px;
     border-radius: 50%;
-    background-color: #f87171;
-    box-shadow: 0 0 8px rgba(248, 113, 113, 0.6);
+    background-color: var(--error-color);
     transition: all 0.3s ease;
 }
 
 .status-indicator.active {
-    background-color: #34d399;
-    box-shadow: 0 0 12px rgba(52, 211, 153, 0.6);
+    background-color: var(--success-color);
+}
+
+.status-info span {
+    font-weight: 600;
+    font-size: 0.85rem;
+    color: var(--text-primary);
+    transition: color 0.3s ease;
 }
 
 .form-group {
     width: 100%;
     display: flex;
     flex-direction: column;
-    gap: 8px;
+    gap: 6px;
     text-align: left;
     margin-bottom: 20px;
+    margin-top: 8px;
 }
 
 .form-group label {
-    font-size: 0.8rem;
-    color: #64748b;
-    font-weight: 700;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
+    font-size: 0.75rem;
+    color: var(--text-secondary);
+    font-weight: 500;
+    margin-left: 4px;
+    transition: color 0.3s ease;
 }
 
-input[type="password"] {
-    padding: 14px;
+textarea {
+    padding: 10px 12px;
     border-radius: 10px;
-    border: 1px solid #e2e8f0;
-    background: #ffffff;
-    color: #111827;
+    border: 1px solid var(--border-color);
+    background: var(--input-bg);
+    color: var(--text-primary);
     outline: none;
     font-family: inherit;
-    font-size: 0.95rem;
+    font-size: 0.85rem;
     box-sizing: border-box;
     width: 100%;
     transition: all 0.2s ease;
-    box-shadow: 0 2px 6px rgba(0,0,0,0.02);
+    resize: vertical;
+    line-height: 1.4;
+    user-select: text;
+    cursor: text;
 }
 
-input[type="password"]:focus {
-    border-color: #3b82f6;
-    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+textarea:focus {
+    border-color: var(--accent-color);
+    box-shadow: 0 0 0 1px var(--accent-color);
+}
+
+textarea::placeholder {
+    color: var(--text-secondary);
 }
 
 .btn-primary {
     width: 100%;
-    background-color: #111827;
-    color: #ffffff;
+    background: var(--btn-bg);
+    color: var(--btn-text);
     border: none;
-    border-radius: 12px;
-    padding: 14px;
-    font-size: 1rem;
+    border-radius: 9999px;
+    padding: 9px;
+    font-size: 0.85rem;
     font-weight: 700;
     cursor: pointer;
-    transition: transform 0.1s, background-color 0.2s;
-    font-family: 'Inter', sans-serif;
+    transition: background 0.2s ease, color 0.2s ease;
+    font-family: inherit;
+}
+
+.btn-primary:hover {
+    background: var(--btn-hover);
 }
 
 .btn-primary:active {
-    transform: scale(0.98);
+    background: var(--btn-active);
 }
 
 #message {
-    margin-top: 12px;
-    font-size: 0.85rem;
-    color: #10b981;
-    font-weight: 600;
+    margin-top: 14px;
+    font-size: 0.8rem;
+    color: var(--success-color);
+    font-weight: 500;
     text-align: center;
-    min-height: 20px;
+    min-height: 18px;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+
+#message.show {
+    opacity: 1;
 }
 
 /* Toggle Switch CSS */
 .switch {
   position: relative;
   display: inline-block;
-  width: 48px;
-  height: 26px;
+  width: 40px;
+  height: 22px;
 }
 
 .switch input { 
@@ -175,28 +279,133 @@ input[type="password"]:focus {
   left: 0;
   right: 0;
   bottom: 0;
-  background-color: #cbd5e1;
-  transition: .4s;
-  border-radius: 26px;
+  background-color: var(--toggle-bg);
+  transition: .3s;
+  border-radius: 22px;
 }
 
 .slider:before {
   position: absolute;
   content: "";
-  height: 20px;
-  width: 20px;
+  height: 16px;
+  width: 16px;
   left: 3px;
   bottom: 3px;
-  background-color: white;
-  transition: .4s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+  background-color: #FFFFFF;
+  transition: .3s cubic-bezier(0.4, 0.0, 0.2, 1);
   border-radius: 50%;
-  box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
 }
 
 input:checked + .slider {
-  background-color: #10b981;
+  background-color: var(--accent-color);
 }
 
 input:checked + .slider:before {
-  transform: translateX(22px);
+  transform: translateX(18px);
+}
+
+
+/* Mode Buttons */
+.mode-buttons {
+    display: flex;
+    background: var(--toggle-bg);
+    border-radius: 8px;
+    padding: 4px;
+    gap: 4px;
+    width: 100%;
+    box-sizing: border-box;
+}
+
+.mode-btn {
+    flex: 1;
+    background: transparent;
+    color: var(--text-secondary);
+    border: none;
+    padding: 6px 0;
+    font-size: 0.8rem;
+    font-weight: 600;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.mode-btn:hover {
+    color: var(--text-primary);
+}
+
+.mode-btn.active {
+    background: var(--accent-color);
+    color: #FFFFFF;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.15);
+}
+
+
+/* Highlighted Action Mode Box */
+.status-card.action-mode-box {
+    border: 1.5px solid var(--accent-color);
+    background: rgba(29, 155, 240, 0.04);
+    box-shadow: 0 4px 12px rgba(29, 155, 240, 0.15), inset 0 0 0 1px rgba(255, 255, 255, 0.05);
+    border-radius: 16px;
+    padding: 14px 12px !important;
+}
+
+body.light-mode .status-card.action-mode-box {
+    background: rgba(29, 155, 240, 0.06);
+    box-shadow: 0 4px 12px rgba(29, 155, 240, 0.15), inset 0 0 0 1px rgba(255, 255, 255, 0.4);
+}
+
+.status-card.action-mode-box:hover {
+    background: rgba(29, 155, 240, 0.07);
+    border-color: #3BA3F2;
+    box-shadow: 0 6px 16px rgba(29, 155, 240, 0.2);
+    transform: translateY(-1px);
+}
+
+
+/* Footer Text */
+.footer-text {
+    font-size: 0.65rem;
+    color: var(--text-secondary);
+    text-align: center;
+    margin-top: auto;
+    padding-top: 24px;
+    opacity: 0.6;
+    letter-spacing: 0.3px;
+}
+
+
+/* Header Pill Layout */
+.header-pill {
+    display: flex;
+    align-items: center;
+    background: #1C1C1E;
+    padding: 6px 16px 6px 6px;
+    border-radius: 9999px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+    margin-bottom: 8px;
+    gap: 12px;
+    border: 1px solid rgba(255,255,255,0.05);
+}
+
+body.light-mode .header-pill {
+    background: #FFFFFF;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    border: 1px solid rgba(0,0,0,0.05);
+}
+
+.header-pill .logo-container {
+    margin-bottom: 0;
+    width: 36px;
+    height: 36px;
+}
+
+.header-pill .logo-glow {
+    width: 36px;
+    height: 36px;
+}
+
+.header-pill .app-title {
+    font-size: 1rem;
+    margin: 0;
 }

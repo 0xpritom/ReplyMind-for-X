@@ -3,25 +3,30 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>X Auto commenter</title>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
+    <title>ReplyMind for X</title>
     <link rel="stylesheet" href="popup.css">
 </head>
 <body>
     <div class="app-container">
         
-        <div class="logo-container">
-            <div class="logo-glow"></div>
-            <img src="icon.png" alt="Logo" class="logo-img">
+        <button id="theme-toggle" class="theme-toggle-btn" title="Toggle Theme">
+            <svg id="theme-icon-moon" viewBox="0 0 24 24" fill="currentColor" class="theme-icon" style="display: none;"><path d="M21.752 15.002A9.718 9.718 0 0118 15c-5.523 0-10-4.477-10-10 0-1.473.316-2.871.884-4.133-5.32 1.34-9.333 6.071-9.333 11.633 0 6.627 5.373 12 12 12 5.562 0 10.293-4.013 11.633-9.333a9.721 9.721 0 01-1.432.835z"/></svg>
+            <svg id="theme-icon-sun" viewBox="0 0 24 24" fill="currentColor" class="theme-icon"><path d="M12 2.25a.75.75 0 01.75.75v2.25a.75.75 0 01-1.5 0V3a.75.75 0 01.75-.75zM7.5 12a4.5 4.5 0 119 0 4.5 4.5 0 01-9 0zM18.894 6.166a.75.75 0 00-1.06-1.06l-1.591 1.59a.75.75 0 101.06 1.061l1.591-1.59zM21.75 12a.75.75 0 01-.75.75h-2.25a.75.75 0 010-1.5H21a.75.75 0 01.75.75zM17.834 18.894a.75.75 0 001.06-1.06l-1.59-1.591a.75.75 0 10-1.061 1.06l1.59 1.591zM12 18.75a.75.75 0 01.75.75V21a.75.75 0 01-1.5 0v-1.5a.75.75 0 01.75-.75zM6.166 17.834a.75.75 0 00-1.06 1.06l1.59 1.591a.75.75 0 101.06-1.061l-1.59-1.59zM4.5 12a.75.75 0 01-.75.75H1.5a.75.75 0 010-1.5h2.25a.75.75 0 01.75.75zM6.166 6.166a.75.75 0 001.06-1.06l-1.59-1.591a.75.75 0 00-1.06 1.061l1.59 1.59z"/></svg>
+        </button>
+
+        <div class="header-pill">
+            <div class="logo-container">
+                <div class="logo-glow"></div>
+                <img src="icon.png" alt="Logo" class="logo-img">
+            </div>
+            <h1 class="app-title">ReplyMind for X</h1>
         </div>
+        <p class="app-subtitle">AI-Powered Contextual Replies</p>
         
-        <h1 class="app-title">X Auto commenter</h1>
-        <p class="app-subtitle">Smart AI Auto-Commenter</p>
-        
-        <div class="status-card" style="margin-bottom: 12px;">
+        <div class="status-card">
             <div class="status-info">
                 <div class="status-indicator" id="status-dot"></div>
-                <span id="status-text" style="font-weight: 700; font-size: 0.9rem;">Inactive</span>
+                <span id="status-text">Inactive</span>
             </div>
             <label class="switch">
                 <input type="checkbox" id="toggle-bot">
@@ -31,7 +36,7 @@
 
         <div class="status-card">
             <div class="status-info">
-                <span style="font-weight: 700; font-size: 0.9rem; color: #475569;">日本語のみ</span>
+                <span>日本語のみ</span>
             </div>
             <label class="switch">
                 <input type="checkbox" id="toggle-jp">
@@ -39,24 +44,26 @@
             </label>
         </div>
 
-        <div class="status-card">
-            <div class="status-info">
-                <span style="font-weight: 700; font-size: 0.9rem; color: #475569;">Like After Reply</span>
+        <div class="status-card action-mode-box" style="flex-direction: column; align-items: stretch; gap: 8px; padding: 12px;">
+            <div class="status-info" style="justify-content: center;">
+                <span>Action Mode</span>
             </div>
-            <label class="switch">
-                <input type="checkbox" id="toggle-like">
-                <span class="slider round"></span>
-            </label>
+            <div class="mode-buttons">
+                <button class="mode-btn active" data-mode="both">Both</button>
+                <button class="mode-btn" data-mode="like">Like</button>
+                <button class="mode-btn" data-mode="reply">Reply</button>
+            </div>
         </div>
 
         <div class="form-group">
-            <label for="api-key">Groq API Key</label>
-            <input type="password" id="api-key" placeholder="gsk_...">
+            <label for="api-key">Groq API Keys (One per line)</label>
+            <textarea id="api-key" placeholder="gsk_...\ngsk_..." rows="3"></textarea>
         </div>
 
         <button id="save-btn" class="btn-primary">Save Settings</button>
         <div id="message"></div>
         
+        <div class="footer-text">&copy; 2026 All rights reserved by Pritom</div>
     </div>
     <script src="popup.js"></script>
 </body>

@@ -1,6 +1,6 @@
 {
   "manifest_version": 3,
-  "name": "X Auto commenter",
+  "name": "ReplyMind for X",
   "version": "2.2",
   "description": "Automatically reads your X feed and posts human-like replies using AI.",
   "permissions": ["storage", "tabs"],
