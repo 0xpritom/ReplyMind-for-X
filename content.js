@@ -243,10 +243,12 @@ async function startBot() {
                     break; // DOM changed significantly, break loop to fetch fresh tweets
                 }
                 const rect = tweet.getBoundingClientRect();
-                if (rect.top < 0 || rect.bottom > window.innerHeight) {
-                    updateStatus("Tweet not properly visible in center. Retrying...");
-                    tweet.removeAttribute('data-auto-replied');
-                    break; // Break loop and try to find a better one on next fetch
+                // A tweet is completely out of view if its bottom is above the viewport or its top is below the viewport.
+                // Tall tweets may have top < 0 and bottom > window.innerHeight, which is perfectly fine.
+                if (rect.bottom < 0 || rect.top > window.innerHeight) {
+                    updateStatus("Tweet not properly visible in center. Skipping...");
+                    // Keep data-auto-replied=true and continue so we don't get stuck in an infinite loop
+                    continue; 
                 }
 
                 updateStatus(`Reading tweet...\n"${tweetText.substring(0, 40)}..."`, tweet);
