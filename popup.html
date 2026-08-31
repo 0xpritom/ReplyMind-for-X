@@ -34,14 +34,17 @@
             </label>
         </div>
 
-        <div class="status-card">
+        <div class="status-card" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap;">
             <div class="status-info">
-                <span>日本語のみ</span>
+                <span>Influence Score Filter</span>
             </div>
-            <label class="switch">
-                <input type="checkbox" id="toggle-jp">
-                <span class="slider round"></span>
-            </label>
+            <div style="display: flex; align-items: center; gap: 12px;">
+                <input type="number" id="influence-score" min="1" placeholder="Min" style="width: 60px; padding: 6px; border-radius: 8px; border: 1px solid #cbd5e1; text-align: center; font-size: 14px; color: #1e293b; outline: none; background: #f8fafc;">
+                <label class="switch">
+                    <input type="checkbox" id="toggle-kol">
+                    <span class="slider round"></span>
+                </label>
+            </div>
         </div>
 
         <div class="status-card action-mode-box" style="flex-direction: column; align-items: stretch; gap: 8px; padding: 12px;">

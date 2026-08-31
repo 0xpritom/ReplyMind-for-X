@@ -81,7 +81,7 @@ async function generateComment(text, langCode, authorHandle, isReply, wordCount)
     }
     
     let authorInstruction = "";
-    if (authorHandle && Math.random() < 0.30) {
+    if (authorHandle && Math.random() < 0.01) {
         const firstName = authorHandle.split(' ')[0];
         authorInstruction = `CRITICAL RULE: You MUST start your comment by casually addressing the poster by their first name: "${firstName}" (e.g. "${firstName}, tbh this is wild"). NEVER put their name in the middle or at the end. NEVER put an '@' symbol before their name.`;
     }
@@ -93,7 +93,7 @@ async function generateComment(text, langCode, authorHandle, isReply, wordCount)
     const projectMentions = (text || "").match(/@\w+/g);
     let exactMentionRule = "Do not use the '@' symbol or any @usernames in your reply.";
     if (projectMentions && projectMentions.length > 0) {
-        if (Math.random() < 0.20) {
+        if (Math.random() < 0.05) {
             const uniqueMentions = [...new Set(projectMentions)].join(', ');
             const exampleMention = projectMentions[0];
             exactMentionRule = `\nCRITICAL RULE ABOUT PROJECTS: The original post tags these specific handles: ${uniqueMentions}. You MUST casually mention the project in your reply. When you do, YOU ABSOLUTELY MUST INCLUDE THE '@' SYMBOL. For example, write "${exampleMention}". DO NOT write the name without the '@'. DO NOT use any other @usernames.`;

@@ -1,7 +1,8 @@
 let isEnabled = false;
 let isRunning = false;
 let statusBox = null;
-let japaneseOnly = false;
+let kolFilter = false;
+let influenceScoreThreshold = 10;
 let actionMode = 'both';
 
 // --- Visual UI Setup ---
@@ -102,9 +103,10 @@ function simulateClick(element) {
 // Load settings on startup
 let repliedHistory = [];
 
-chrome.storage.local.get(['enabled', 'repliedHistory', 'japaneseOnly', 'likeMode', 'actionMode'], (res) => {
+chrome.storage.local.get(['enabled', 'repliedHistory', 'kolFilter', 'influenceScore', 'likeMode', 'actionMode'], (res) => {
     isEnabled = res.enabled || false;
-    japaneseOnly = res.japaneseOnly || false;
+    kolFilter = res.kolFilter || false;
+    influenceScoreThreshold = res.influenceScore || 10;
     actionMode = res.actionMode || (res.likeMode ? 'both' : 'reply');
     repliedHistory = res.repliedHistory || [];
     if (isEnabled && !isRunning) startBot();
@@ -116,8 +118,11 @@ chrome.storage.onChanged.addListener((changes) => {
         if (isEnabled && !isRunning) startBot();
         else if (!isEnabled) updateStatus("Bot disabled.");
     }
-    if (changes.japaneseOnly !== undefined) {
-        japaneseOnly = changes.japaneseOnly.newValue;
+    if (changes.kolFilter !== undefined) {
+        kolFilter = changes.kolFilter.newValue;
+    }
+    if (changes.influenceScore !== undefined) {
+        influenceScoreThreshold = changes.influenceScore.newValue;
     }
     if (changes.actionMode !== undefined) {
         actionMode = changes.actionMode.newValue;
@@ -126,6 +131,21 @@ chrome.storage.onChanged.addListener((changes) => {
 
 const sleep = (ms) => new Promise(resolve => setTimeout(resolve, ms));
 const randomDelay = (min, max) => sleep(Math.floor(Math.random() * (max - min + 1)) + min);
+
+async function checkIfBigAccount(tweet) {
+    const avatarContainer = tweet.querySelector('[data-testid="Tweet-User-Avatar"]');
+    if (avatarContainer) {
+        const text = avatarContainer.innerText.trim();
+        const match = text.match(/\d+/);
+        if (match) {
+            const score = parseInt(match[0]);
+            if (score >= influenceScoreThreshold) {
+                return true;
+            }
+        }
+    }
+    return false;
+}
 
 async function startBot() {
     if (isRunning) return;
@@ -140,9 +160,9 @@ async function startBot() {
             // Check for unwanted blocking modals/popups before scanning
             const blockingModal = document.querySelector('[role="dialog"]');
             if (blockingModal) {
-                updateStatus("Unwanted popup detected. Opening feed in a new tab...");
+                updateStatus("Unwanted popup detected. Refreshing page...");
                 await randomDelay(1000, 2000);
-                chrome.runtime.sendMessage({ action: 'resetFeed' });
+                window.location.reload();
                 return;
             }
 
@@ -227,10 +247,18 @@ async function startBot() {
                     continue;
                 }
 
-                if (japaneseOnly && tweetLang !== 'ja' && tweetLang !== 'Japanese') {
-                    updateStatus("Skipping: Not a Japanese comment (JP Only mode is ON).", tweet);
-                    await randomDelay(500, 1000);
-                    continue;
+                let shouldApplyKolFilter = kolFilter;
+                if (window.location.pathname.includes('/search')) {
+                    shouldApplyKolFilter = false; // Bypass filter on search pages
+                }
+
+                if (shouldApplyKolFilter) {
+                    const isBig = await checkIfBigAccount(tweet);
+                    if (!isBig) {
+                        updateStatus(`Skipping: Account score is below ${influenceScoreThreshold} (Filter is ON).`, tweet);
+                        await randomDelay(500, 1000);
+                        continue;
+                    }
                 }
 
                 // Explicitly scroll tweet to the center of the screen so user can see it before action
@@ -260,6 +288,8 @@ async function startBot() {
                 if (actionMode === 'like') {
                     const likeBtn = tweet.querySelector('[data-testid="like"]');
                     if (likeBtn) {
+                        tweet.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                        await sleep(500);
                         updateStatus(`Clicking like button...`, tweet);
                         simulateClick(likeBtn);
                         await randomDelay(500, 1000);
@@ -324,7 +354,8 @@ async function startBot() {
 
                 const replyBtn = tweet.querySelector('[data-testid="reply"]');
                 if (replyBtn) {
-
+                    tweet.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                    await sleep(500);
                     updateStatus(`Clicking reply button...`, tweet);
                     simulateClick(replyBtn);
                     
@@ -388,17 +419,17 @@ async function startBot() {
                             }
                             
                         } else {
-                            updateStatus(`Error: Send button not found or disabled. Opening feed in a new tab...`, tweet);
-                            await randomDelay(3000, 3000);
-                            chrome.runtime.sendMessage({ action: 'resetFeed' });
+                            updateStatus(`Error: Send button not found or disabled. Refreshing page...`, tweet);
+                            await randomDelay(2000, 3000);
+                            window.location.reload();
                             return;
                         }
                         
                         updateStatus(`Reply process finished! Cooling down...`, tweet);
                     } else {
-                        updateStatus(`Error: Could not find text box in modal! Opening feed in a new tab...`, tweet);
-                        await randomDelay(3000, 3000);
-                        chrome.runtime.sendMessage({ action: 'resetFeed' });
+                        updateStatus(`Error: Could not find text box in modal! Refreshing page...`, tweet);
+                        await randomDelay(2000, 3000);
+                        window.location.reload();
                         return;
                     }
                 } else {
@@ -415,10 +446,10 @@ async function startBot() {
             }
             
         } catch (error) {
-            updateStatus(`Fatal Error: ${error.message}\nOpening feed in a new tab...`);
+            updateStatus(`Fatal Error: ${error.message}\nRefreshing page...`);
             console.error(error);
-            await randomDelay(3000, 5000);
-            chrome.runtime.sendMessage({ action: 'resetFeed' });
+            await randomDelay(2000, 3000);
+            window.location.reload();
             return;
         }
     }
