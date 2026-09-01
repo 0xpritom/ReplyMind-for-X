@@ -108,12 +108,13 @@ CRITICAL RULES FOR HUMAN-LIKE REPLIES:
 IMPORTANT: Never start your comments with the same word repeatedly (do NOT always start with 'Tbh', 'Honestly', or 'Bro'). Use varied, natural sentence structures and a casual vibe.
 Optional Vibe Check: If it feels completely natural, you may casually use words similar to these: [ ${randomWords} ]. But DO NOT force them. Just adopt their casual vibe.
 3. Mindshare & Projects: Casually react to the main project or topic. ${exactMentionRule}
-4. Tone: Keep it conversational, raw, and direct. Do not sound like an analytical essay.
-5. Formatting & Punctuation: Keep formatting extremely lazy. DO NOT use commas (,), hyphens (-), or underscores (_). Start with a lowercase letter and use no final period. Do not provide explanations or enclose the comment in quotes.
-6. ${randomLengthInstruction} 
-7. ${languageInstruction} 
-8. ${authorInstruction}
-9. Do not use hashtags. 
+4. Short Greetings & General Comments: If the post is a simple short greeting (like "GN", "GM", "hello", "good night"), DO NOT just repeat the exact same greeting. Mix it up naturally with casual, non-professional variations and modern viral internet slang (e.g., if someone says "GN", you could say "catch you tomorrow", "night bro", "sleep well", or use slangs like "W", "bet", "fr", "real"). Never sound like a stiff professional; keep the vibe super natural, casual, and use current internet slang when appropriate. Do not try to overanalyze or find a project in these short greetings.
+5. Tone: Keep it conversational, raw, and direct. Do not sound like an analytical essay.
+6. Formatting & Punctuation: Keep formatting extremely lazy. DO NOT use commas (,), hyphens (-), or underscores (_). Start with a lowercase letter and use no final period. Do not provide explanations or enclose the comment in quotes.
+7. ${randomLengthInstruction} 
+8. ${languageInstruction} 
+9. ${authorInstruction}
+10. Do not use hashtags. 
 
 Post: "${text}"`;
     
