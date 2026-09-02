@@ -437,10 +437,10 @@ async function startBot() {
                     await randomDelay(3000, 3000);
                 }
                 
-                updateStatus(`Cooling down... (Waiting 5-7s)`);
+                updateStatus(`Cooling down... (Waiting 1-3s)`);
                 // Scroll down visually after a comment to adjust viewport and move to next content
                 window.scrollBy({ top: window.innerHeight * 0.6, behavior: 'smooth' });
-                await randomDelay(5000, 7000);
+                await randomDelay(1000, 3000);
                 
                 break; // STRICT FIX: Break the inner loop to fetch a fresh list of tweets, preventing detached DOM errors
             }
