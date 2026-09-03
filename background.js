@@ -41,7 +41,7 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
 });
 
 async function generateComment(text, parentText, langCode, authorHandle, isReply, wordCount) {
-    const data = await chrome.storage.local.get(['apiKey', 'apiKeys', 'currentApiKeyIndex']);
+    const data = await chrome.storage.local.get(['apiKey', 'apiKeys', 'currentApiKeyIndex', 'userMemory']);
     let apiKeysList = [];
     if (data.apiKeys) {
         apiKeysList = data.apiKeys.split(/[\r\n,]+/).map(k => k.trim()).filter(k => k);
@@ -58,6 +58,12 @@ async function generateComment(text, parentText, langCode, authorHandle, isReply
 
     const url = "https://api.groq.com/openai/v1/chat/completions";
     
+    let userMemory = data.userMemory || {};
+    let memoryInstruction = "";
+    if (authorHandle && userMemory[authorHandle]) {
+        memoryInstruction = `\nMEMORY/RELATIONSHIP: You have interacted with this user (@${authorHandle}) before! Your last interaction with them was: "${userMemory[authorHandle]}". You MUST casually acknowledge them like an old internet friend or mutual (e.g., "good to see u again", "still at it I see", or reference the past interaction).`;
+    }
+
     let languageInstruction = `CRITICAL RULE: The original post was written in this language: "${langCode}". You MUST write your reply entirely in that exact language (e.g., if it says Japanese or 'ja', you must reply in Japanese).`;
     if (!langCode || langCode === 'unknown') {
         languageInstruction = `CRITICAL RULE: You must write the comment in the EXACT SAME LANGUAGE as the original post.`;
@@ -128,8 +134,9 @@ Optional Vibe Check: If it feels completely natural, you may casually use words 
 14. Curiosity: Sometimes end your comment with a casual, open-ended question to spark a conversation (e.g., 'how long did that take u?', 'curious how u handled [X]').
 15. Sarcasm & Humor: Use mild, relatable internet humor or self-deprecation when appropriate, especially on topics like coding struggles or market crashes.
 16. Moderation & Restraint (CRITICAL): Do NOT overuse viral internet slang, questions, disagreements, or anecdotes in every single reply. Use these features sparingly and ONLY if the context naturally calls for it. A real human doesn't try to be funny, use slang, or ask a question in every single sentence. Sometimes a simple, straight-to-the-point casual insight is best.
+17. Media & GIFs: If the post is extremely relatable, funny, or frustrating, you can choose to reply with JUST a GIF instead of text. To do this, your ENTIRE response must be EXACTLY: [GIF: keyword] (e.g., [GIF: facepalm], [GIF: laughing], [GIF: crying]). Use this about 5-10% of the time instead of a text reply.
 
-${parentContextInstruction}
+${parentContextInstruction}${memoryInstruction}
 ${targetLabel} "${text}"`;
     
     let maxRetries = apiKeysList.length;
@@ -176,8 +183,19 @@ ${targetLabel} "${text}"`;
             
             comment = comment.replace(/[.。]+$/, '').trim();
             
-            if (comment.length > 0) {
+            if (comment.length > 0 && !comment.startsWith("[GIF:")) {
                 comment = comment.charAt(0).toUpperCase() + comment.slice(1);
+                comment = applyImperfections(comment);
+            }
+
+            // Save memory
+            if (authorHandle && !comment.startsWith("[GIF:")) {
+                const keys = Object.keys(userMemory);
+                if (keys.length > 500) {
+                    delete userMemory[keys[0]];
+                }
+                userMemory[authorHandle] = `They posted: "${text.substring(0, 50)}..." and you replied: "${comment}"`;
+                await chrome.storage.local.set({ userMemory });
             }
 
             return comment;
@@ -196,4 +214,26 @@ ${targetLabel} "${text}"`;
     }
     
     throw lastError || new Error("All API keys are rate limited or failed.");
+}
+
+function applyImperfections(text) {
+    if (Math.random() > 0.3) return text; // 30% chance to apply any imperfection
+    
+    let modified = text;
+    
+    // 1. Swap 'the' with 'teh'
+    if (Math.random() < 0.3) modified = modified.replace(/\bthe\b/g, "teh");
+    
+    // 2. Remove trailing punctuation
+    if (Math.random() < 0.5) modified = modified.replace(/[.,!?]+$/, "");
+    
+    // 3. Lowercase first letter occasionally
+    if (Math.random() < 0.5 && modified.length > 0) {
+        modified = modified.charAt(0).toLowerCase() + modified.slice(1);
+    }
+    
+    // 4. Just -> jsut
+    if (Math.random() < 0.2) modified = modified.replace(/\bjust\b/g, "jsut");
+    
+    return modified;
 }

@@ -387,15 +387,53 @@ async function startBot() {
                         textBox.focus();
                         await randomDelay(200, 400);
                         
-                        const dataTransfer = new DataTransfer();
-                        dataTransfer.setData('text/plain', replyText);
-                        textBox.dispatchEvent(new ClipboardEvent('paste', {
-                            clipboardData: dataTransfer,
-                            bubbles: true,
-                            cancelable: true
-                        }));
-                        
-                        await randomDelay(500, 1000);
+                        if (replyText.startsWith("[GIF:") && replyText.endsWith("]")) {
+                            const gifKeyword = replyText.substring(5, replyText.length - 1).trim();
+                            updateStatus(`Searching for GIF: ${gifKeyword}...`, tweet);
+                            
+                            const gifButton = document.querySelector('[aria-label="Add a GIF"], [data-testid="gifSearchButton"]');
+                            if (gifButton) {
+                                simulateClick(gifButton);
+                                await randomDelay(1000, 1500);
+                                
+                                const searchBox = document.querySelector('input[placeholder*="Search for GIFs"], input[aria-label*="Search"]');
+                                if (searchBox) {
+                                    searchBox.focus();
+                                    const nativeInputValueSetter = Object.getOwnPropertyDescriptor(window.HTMLInputElement.prototype, "value").set;
+                                    nativeInputValueSetter.call(searchBox, gifKeyword);
+                                    searchBox.dispatchEvent(new Event('input', { bubbles: true }));
+                                    
+                                    await randomDelay(2500, 3500); // wait for search results
+                                    
+                                    const dialog = document.querySelector('[role="dialog"]');
+                                    if (dialog) {
+                                        // Twitter GIF results are usually images inside role="button" or similar grids
+                                        const results = Array.from(dialog.querySelectorAll('div[role="button"]')).filter(btn => btn.querySelector('img'));
+                                        if (results.length > 0) {
+                                            const targetGif = results[Math.floor(Math.random() * Math.min(3, results.length))];
+                                            simulateClick(targetGif);
+                                            await randomDelay(1500, 2000);
+                                        } else {
+                                            updateStatus(`No GIF found, typing keyword instead.`, tweet);
+                                            const dataTransfer = new DataTransfer();
+                                            dataTransfer.setData('text/plain', `*${gifKeyword}*`);
+                                            textBox.dispatchEvent(new ClipboardEvent('paste', { clipboardData: dataTransfer, bubbles: true, cancelable: true }));
+                                            await randomDelay(500, 1000);
+                                        }
+                                    }
+                                }
+                            }
+                        } else {
+                            const dataTransfer = new DataTransfer();
+                            dataTransfer.setData('text/plain', replyText);
+                            textBox.dispatchEvent(new ClipboardEvent('paste', {
+                                clipboardData: dataTransfer,
+                                bubbles: true,
+                                cancelable: true
+                            }));
+                            
+                            await randomDelay(500, 1000);
+                        }
                         
                         const submitBtn = document.querySelector('[data-testid="tweetButton"]');
                         if (submitBtn && !submitBtn.disabled) {
