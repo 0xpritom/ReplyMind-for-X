@@ -1,20 +1,25 @@
-# Automated Twitter Engagement Extension (Global Auto-Reply)
+# ReplyMind for X (Automated AI Engagement Extension)
 
-A smart, automated Google Chrome extension that reads your X (formerly Twitter) feed and posts human-like, context-aware replies using AI. It uses the Groq API (Llama 3) to generate natural comments and includes humanized interactions like reading delays, random skipping, and typing simulations.
+A smart, automated Google Chrome extension that reads your X (formerly Twitter) feed and posts highly authentic, human-like, context-aware replies using AI. It uses the Groq API (running `openai/gpt-oss-20b`) to generate natural comments and includes advanced humanized interactions like reading delays, sentiment matching, and dynamic contextual understanding.
 
-## Features
+## ✨ Core Features
 
-- **AI-Powered Replies**: Automatically generates context-aware replies to posts using Groq's high-speed API (Llama-3.1-8b-instant).
-- **Human-Like Behavior**: 
-  - Simulates reading time based on the tweet's length.
-  - Randomly chooses to skip some posts (25% chance) to mimic a real user's browsing habit.
-  - Simulates the visual typing process.
-- **Japanese-Only Mode (日本語のみ)**: A newly added feature! When toggled on, the bot will exclusively interact with and reply to Japanese posts. The replies will automatically be generated in Japanese.
-- **On-Screen Status UI**: A sleek, non-intrusive status box appears on the screen, showing exactly what the bot is currently thinking, reading, or typing. It also visually highlights the active tweet it is processing.
-- **Memory**: Remembers the posts it has already replied to during previous sessions to prevent duplicate comments on the same post.
-- **Easy Configuration**: Simple popup menu to input your API key and toggle the bot's status and Japanese-only filter.
+- **🧠 Emotional Intelligence & Empathy**: The bot reads the underlying sentiment of a post. It shows empathy for struggles (like coding bugs or market dumps) and matches the hype for exciting announcements before dropping logical insights.
+- **🗣️ Authentic Human Behavior**:
+  - **Logical Disagreement**: Occasionally plays devil's advocate or gently disagrees (15-20% chance) to avoid sounding like a robotic "yes-man".
+  - **Personal Anecdotes**: Frames its insights as personal experiences rather than generic facts (e.g., "I always struggled with this until...").
+  - **Curiosity & Conversation Starters**: Frequently ends comments with open-ended questions to spark real engagement.
+  - **Relatable Humor**: Uses mild internet sarcasm and self-deprecation where appropriate.
+- **🧵 Context-Aware Comment Replies**: When used inside a comment section, the bot automatically extracts the Main Post's text. It feeds this context to the AI so the bot knows exactly what the overarching conversation is about before replying to a specific comment.
+- **🎯 Dynamic Prompt Targeting**: Seamlessly adjusts its AI prompts based on whether it is reading a post on your home feed or replying to a comment inside a thread.
+- **⭐ Action Modes**: Choose how the bot interacts:
+  - **Reply Only**: Generates and posts comments.
+  - **Like Only**: Automatically likes relevant tweets.
+  - **Both**: Likes the tweet and posts a reply.
+- **👑 Influence Score Filter (KOL Filter)**: Filter tweets based on the author's influence score (number of followers/stats found in their avatar info). Only interact with high-value accounts.
+- **🔑 Multi-Key Rotation**: Input multiple Groq API keys (one per line). The bot automatically rotates to the next key if a rate limit (`429`) is hit, ensuring uninterrupted operation.
 
-## Installation
+## 🚀 Installation
 
 Since this is an unpacked extension, you'll need to load it in Developer Mode:
 
@@ -23,25 +28,26 @@ Since this is an unpacked extension, you'll need to load it in Developer Mode:
 3. Enable **Developer mode** using the toggle switch in the top right corner.
 4. Click the **Load unpacked** button in the top left.
 5. Select the folder containing the extension files.
-6. The extension is now installed! You should see the Global Auto-Reply icon in your Chrome toolbar.
+6. The extension is now installed! You should see the ReplyMind icon in your Chrome toolbar.
 
-## Usage
+## 🛠️ Usage
 
 1. Click on the extension icon in your toolbar to open the popup.
-2. Enter your **Groq API Key** in the provided field and click **Save Settings**. (You can get a free API key from the [Groq Console](https://console.groq.com/)).
-3. Toggle the **Bot Status** switch to turn the auto-replier ON. 
-4. (Optional) Toggle the **日本語のみ (JP Only)** switch if you only want it to interact with Japanese tweets.
-5. Open [X (Twitter)](https://x.com/) in a new tab. 
-6. Watch as the bot automatically scans the feed, selects posts, generates replies, and interacts on your behalf!
+2. Enter your **Groq API Keys** in the provided field (you can paste multiple keys, one per line) and click **Save Settings**.
+3. Select your **Action Mode** (Both, Like, or Reply).
+4. (Optional) Set an **Influence Score** threshold and toggle the filter ON if you only want to interact with larger accounts.
+5. Toggle the **Bot Status** switch to turn the auto-replier ON. 
+6. Open [X (Twitter)](https://x.com/) in a new tab. 
+7. Watch as the bot automatically scans the feed, selects posts, reads the context, generates empathetic replies, and interacts on your behalf!
 
-## Important Notes & Best Practices
+## ⚠️ Important Notes & Best Practices
 
-- **Rate Limits & Bans**: Use automation on Twitter at your own risk. The random delays and skipping mechanics are designed to reduce the chances of your account being flagged, but X can still detect automated behavior. 
+- **Rate Limits & Bans**: Use automation on Twitter at your own risk. The random delays and human-like scrolling mechanics are designed to reduce the chances of your account being flagged, but X can still detect automated behavior. 
 - **Screen Visibility**: The script scans the tweets currently visible in the DOM. Ensure your tab remains active for the most consistent behavior. 
 
-## Technical Stack
+## 💻 Technical Stack
 
 - Vanilla JavaScript (ES6)
 - Chrome Extension Manifest V3
-- Groq API (OpenAI-compatible endpoints)
+- Groq API (`openai/gpt-oss-20b` via OpenAI-compatible endpoints)
 - CSS3 (Glassmorphism & modern UI in popup)
