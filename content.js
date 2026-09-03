@@ -317,11 +317,24 @@ async function startBot() {
                 }
 
                 let isReply = false;
-                if (window.location.pathname.includes('/status/') && postUrl) {
-                    const currentStatusMatch = window.location.pathname.match(/\/status\/(\d+)/);
-                    const postStatusMatch = postUrl.match(/\/status\/(\d+)/);
-                    if (currentStatusMatch && postStatusMatch && currentStatusMatch[1] !== postStatusMatch[1]) {
-                        isReply = true;
+                let parentPostText = null;
+                
+                if (window.location.pathname.includes('/status/')) {
+                    // Extract the very first tweet on the page to use as the main context
+                    const firstTweet = document.querySelector('article[data-testid="tweet"]');
+                    if (firstTweet) {
+                        const firstTweetTextEl = firstTweet.querySelector('div[data-testid="tweetText"]');
+                        if (firstTweetTextEl) {
+                            parentPostText = firstTweetTextEl.innerText;
+                        }
+                    }
+                    
+                    if (postUrl) {
+                        const currentStatusMatch = window.location.pathname.match(/\/status\/(\d+)/);
+                        const postStatusMatch = postUrl.match(/\/status\/(\d+)/);
+                        if (currentStatusMatch && postStatusMatch && currentStatusMatch[1] !== postStatusMatch[1]) {
+                            isReply = true;
+                        }
                     }
                 }
                 const wordCount = tweetText.trim().split(/\s+/).length;
@@ -331,7 +344,7 @@ async function startBot() {
                 let replyText = null;
                 try {
                     replyText = await new Promise((resolve, reject) => {
-                        chrome.runtime.sendMessage({ action: 'generate', text: tweetText, lang: tweetLang, author: authorName, isReply: isReply, wordCount: wordCount }, (response) => {
+                        chrome.runtime.sendMessage({ action: 'generate', text: tweetText, parentText: parentPostText, lang: tweetLang, author: authorName, isReply: isReply, wordCount: wordCount }, (response) => {
                             if (chrome.runtime.lastError) reject(new Error(chrome.runtime.lastError.message));
                             else if (response && response.error) reject(new Error(response.error));
                             else resolve(response.reply);

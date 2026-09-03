@@ -26,7 +26,7 @@ const casualWordBank = [
 
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
     if (request.action === 'generate') {
-        generateComment(request.text, request.lang, request.author, request.isReply, request.wordCount)
+        generateComment(request.text, request.parentText, request.lang, request.author, request.isReply, request.wordCount)
             .then(reply => sendResponse({ reply }))
             .catch(error => sendResponse({ error: error.message }));
         return true;
@@ -40,7 +40,7 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
     }
 });
 
-async function generateComment(text, langCode, authorHandle, isReply, wordCount) {
+async function generateComment(text, parentText, langCode, authorHandle, isReply, wordCount) {
     const data = await chrome.storage.local.get(['apiKey', 'apiKeys', 'currentApiKeyIndex']);
     let apiKeysList = [];
     if (data.apiKeys) {
@@ -100,6 +100,13 @@ async function generateComment(text, langCode, authorHandle, isReply, wordCount)
         }
     }
     
+    let parentContextInstruction = "";
+    let targetLabel = 'Post:';
+    if (parentText && isReply) {
+        parentContextInstruction = `CONTEXT: You are replying to a comment under a main post. The main post is: "${parentText}". Use this context to better understand the comment you are replying to.\n`;
+        targetLabel = 'Comment to reply to:';
+    }
+
     const prompt = `Act as a regular, everyday Twitter user casually scrolling through your feed. The posts in your feed are heavily project-related. Write a 'mindshare' style comment that adds real value or shares a thoughtful opinion about the core idea or project in the post.
 
 CRITICAL RULES FOR HUMAN-LIKE REPLIES:
@@ -115,8 +122,14 @@ Optional Vibe Check: If it feels completely natural, you may casually use words 
 8. ${languageInstruction} 
 9. ${authorInstruction}
 10. Do not use hashtags. 
+11. Emotional Intelligence: Analyze the emotional tone of the post. If they are frustrated, show empathy or shared pain. If excited, match their hype. Connect emotionally before dropping logic.
+12. Logical Disagreement: Occasionally (about 15-20% of the time), gently disagree, play devil's advocate, or point out a logical flaw (e.g., 'good point but what about...', 'not sure if that scales tbh').
+13. Personal Anecdotes: Instead of always stating facts, sometimes frame your insight as a personal experience (e.g., 'always struggled with this until...', 'tried this last week and...').
+14. Curiosity: Sometimes end your comment with a casual, open-ended question to spark a conversation (e.g., 'how long did that take u?', 'curious how u handled [X]').
+15. Sarcasm & Humor: Use mild, relatable internet humor or self-deprecation when appropriate, especially on topics like coding struggles or market crashes.
 
-Post: "${text}"`;
+${parentContextInstruction}
+${targetLabel} "${text}"`;
     
     let maxRetries = apiKeysList.length;
     let attempt = 0;
