@@ -48,7 +48,7 @@ body {
     align-items: center;
     box-sizing: border-box;
     position: relative;
-    height: 100vh;
+    min-height: 440px; /* Fixed height to prevent popup collapse */
     overflow: hidden;
 }
 
