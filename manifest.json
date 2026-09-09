@@ -1,8 +1,8 @@
 {
   "manifest_version": 3,
   "name": "ReplyMind for X",
-  "version": "2.4.8",
-  "version_name": "2.4.8 (Sep 9, 2026)",
+  "version": "2.4.9",
+  "version_name": "2.4.9 (Sep 9, 2026)",
   "description": "Automatically reads your X feed and posts human-like replies using AI.",
   "permissions": ["storage", "tabs"],
   "host_permissions": [
