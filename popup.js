@@ -109,4 +109,12 @@ document.addEventListener('DOMContentLoaded', () => {
             }, 2500);
         });
     });
+
+    // Set dynamic version in footer
+    const footerText = document.getElementById('footer-text');
+    const manifest = chrome.runtime.getManifest();
+    const versionString = manifest.version_name || `v${manifest.version}`;
+    if (footerText) {
+        footerText.innerHTML = `&copy; 2026 All rights reserved by Pritom<br><span style="font-size: 11px; color: var(--text-secondary); opacity: 0.8; margin-top: 4px; display: inline-block;">Version ${versionString}</span>`;
+    }
 });

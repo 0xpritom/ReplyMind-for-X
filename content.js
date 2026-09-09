@@ -33,8 +33,11 @@ function createStatusUI() {
         transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     `;
     
+    const manifest = chrome.runtime.getManifest();
+    const versionString = manifest.version_name || `v${manifest.version}`;
+    
     const title = document.createElement('div');
-    title.innerHTML = '✨ <b>ReplyMind for X v2.2</b>';
+    title.innerHTML = `✨ <b>ReplyMind for X ${versionString}</b>`;
     title.style.marginBottom = '12px';
     title.style.fontSize = '1.1rem';
     title.style.fontWeight = '800';
