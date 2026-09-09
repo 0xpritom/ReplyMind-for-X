@@ -5,54 +5,85 @@ let kolFilter = false;
 let influenceScoreThreshold = 10;
 let actionMode = 'both';
 
-// --- Visual UI Setup ---
+// --- Premium Visual UI Setup ---
 function createStatusUI() {
     if (document.getElementById('x-bot-status')) return;
     
+    // Inject premium animations
+    const style = document.createElement('style');
+    style.innerHTML = `
+        @keyframes rm-spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        @keyframes rm-shimmer { 0% { background-position: -1000px 0; } 100% { background-position: 1000px 0; } }
+        .x-bot-highlight {
+            position: relative;
+            border-radius: 16px !important;
+            box-shadow: 0 0 0 2px #1d9bf0, 0 8px 32px rgba(29, 155, 240, 0.15) !important;
+            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            z-index: 99;
+        }
+        .x-bot-highlight::after {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; right: 0; bottom: 0;
+            border-radius: 16px;
+            pointer-events: none;
+            background: linear-gradient(90deg, rgba(29, 155, 240, 0) 0%, rgba(29, 155, 240, 0.08) 50%, rgba(29, 155, 240, 0) 100%);
+            background-size: 1000px 100%;
+            animation: rm-shimmer 2.5s infinite linear;
+        }
+        #x-bot-status.visible {
+            opacity: 1 !important;
+            transform: translateX(-50%) translateY(0) !important;
+        }
+    `;
+    document.head.appendChild(style);
+
     statusBox = document.createElement('div');
     statusBox.id = 'x-bot-status';
     statusBox.style.cssText = `
         position: fixed;
-        bottom: 24px;
-        left: 24px;
-        background: rgba(255, 255, 255, 0.95);
-        backdrop-filter: blur(16px);
-        -webkit-backdrop-filter: blur(16px);
-        border: 1px solid #e2e8f0;
-        border-radius: 16px;
-        padding: 20px;
-        color: #111827;
+        bottom: 40px;
+        left: 50%;
+        transform: translateX(-50%) translateY(40px);
+        background: rgba(15, 20, 25, 0.85);
+        backdrop-filter: blur(24px);
+        -webkit-backdrop-filter: blur(24px);
+        border: 1px solid rgba(255, 255, 255, 0.12);
+        border-radius: 999px;
+        padding: 14px 28px;
+        color: #F7F9F9;
         z-index: 999999;
-        font-family: 'Inter', 'Segoe UI', system-ui, -apple-system, sans-serif;
-        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
-        min-width: 280px;
-        max-width: 320px;
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+        box-shadow: 0 12px 40px rgba(0, 0, 0, 0.25), 0 0 0 1px rgba(255,255,255,0.05) inset;
+        display: flex;
+        align-items: center;
+        gap: 14px;
         pointer-events: none;
-        display: none;
-        transform: translateY(0);
-        transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        opacity: 0;
+        transition: transform 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275), opacity 0.4s ease;
     `;
     
-    const manifest = chrome.runtime.getManifest();
-    const versionString = manifest.version_name || `v${manifest.version}`;
-    
-    const title = document.createElement('div');
-    title.innerHTML = `✨ <b>ReplyMind for X ${versionString}</b>`;
-    title.style.marginBottom = '12px';
-    title.style.fontSize = '1.1rem';
-    title.style.fontWeight = '800';
-    title.style.color = '#111827';
-    title.style.borderBottom = '1px solid #e2e8f0';
-    title.style.paddingBottom = '8px';
+    const spinner = document.createElement('div');
+    spinner.style.cssText = `
+        width: 18px;
+        height: 18px;
+        border-radius: 50%;
+        border: 2.5px solid rgba(255, 255, 255, 0.15);
+        border-top-color: #1d9bf0;
+        animation: rm-spin 0.8s linear infinite;
+        flex-shrink: 0;
+    `;
     
     const text = document.createElement('div');
     text.id = 'x-bot-text';
     text.innerText = 'Initializing...';
     text.style.fontSize = '14.5px';
-    text.style.lineHeight = '1.5';
-    text.style.color = '#475569';
+    text.style.fontWeight = '500';
+    text.style.letterSpacing = '0.2px';
+    text.style.lineHeight = '1';
+    text.style.whiteSpace = 'nowrap';
     
-    statusBox.appendChild(title);
+    statusBox.appendChild(spinner);
     statusBox.appendChild(text);
     document.body.appendChild(statusBox);
 }
@@ -60,25 +91,30 @@ function createStatusUI() {
 function updateStatus(message, tweetElement = null) {
     if (!statusBox) createStatusUI();
     
-    statusBox.style.display = isEnabled ? 'block' : 'none';
+    if (isEnabled) {
+        statusBox.style.display = 'flex';
+        // Small delay to allow display:flex to apply before adding visible class for transition
+        setTimeout(() => statusBox.classList.add('visible'), 10);
+    } else {
+        statusBox.classList.remove('visible');
+        setTimeout(() => { if (!statusBox.classList.contains('visible')) statusBox.style.display = 'none'; }, 400);
+    }
     
     const textEl = document.getElementById('x-bot-text');
-    if (textEl) textEl.innerText = message;
+    if (textEl) textEl.innerText = message.split('\n')[0]; // Keep it single line for the pill
     console.log("[Auto-Replier]", message);
     
     // Clear old highlights
     document.querySelectorAll('.x-bot-highlight').forEach(el => {
-        el.style.border = el.dataset.oldBorder || '';
+        el.style.boxShadow = el.dataset.oldShadow || '';
         el.style.borderRadius = el.dataset.oldRadius || '';
         el.classList.remove('x-bot-highlight');
     });
     
-    // Highlight current tweet
+    // Highlight current tweet with premium effect
     if (tweetElement) {
-        tweetElement.dataset.oldBorder = tweetElement.style.border;
+        tweetElement.dataset.oldShadow = tweetElement.style.boxShadow;
         tweetElement.dataset.oldRadius = tweetElement.style.borderRadius;
-        tweetElement.style.border = '2px dashed #17BF63';
-        tweetElement.style.borderRadius = '16px';
         tweetElement.classList.add('x-bot-highlight');
         
         // Ensure tweet is somewhat visible on screen, accounting for sticky headers
