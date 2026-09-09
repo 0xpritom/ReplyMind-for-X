@@ -126,14 +126,12 @@ body.light-mode .app-container::after { background: rgba(139, 92, 246, 0.15); }
     position: relative;
     width: 100%;
     height: 100%;
-    object-fit: cover;
     border-radius: 50%;
     z-index: 2;
-    filter: invert(1) hue-rotate(180deg) brightness(1.2);
     box-shadow: 0 4px 10px rgba(0,0,0,0.3);
 }
 
-body.light-mode .logo-img { filter: none; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
+body.light-mode .logo-img { box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
 
 .title-group { display: flex; flex-direction: column; }
 .app-title {
