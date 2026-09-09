@@ -132,6 +132,20 @@ chrome.storage.onChanged.addListener((changes) => {
 const sleep = (ms) => new Promise(resolve => setTimeout(resolve, ms));
 const randomDelay = (min, max) => sleep(Math.floor(Math.random() * (max - min + 1)) + min);
 
+async function forceReload() {
+    const closeBtn = document.querySelector('[aria-label="Close"]');
+    if (closeBtn) {
+        simulateClick(closeBtn);
+        await sleep(1000);
+        const discardBtn = document.querySelector('[data-testid="confirmationSheetConfirm"]');
+        if (discardBtn) {
+            simulateClick(discardBtn);
+            await sleep(1000);
+        }
+    }
+    window.location.reload();
+}
+
 async function checkIfBigAccount(tweet) {
     const avatarContainer = tweet.querySelector('[data-testid="Tweet-User-Avatar"]');
     if (avatarContainer) {
@@ -162,7 +176,7 @@ async function startBot() {
             if (blockingModal) {
                 updateStatus("Unwanted popup detected. Refreshing page...");
                 await randomDelay(1000, 2000);
-                window.location.reload();
+                await forceReload();
                 return;
             }
 
@@ -472,7 +486,7 @@ async function startBot() {
                         } else {
                             updateStatus(`Error: Send button not found or disabled. Refreshing page...`, tweet);
                             await randomDelay(2000, 3000);
-                            window.location.reload();
+                            await forceReload();
                             return;
                         }
                         
@@ -480,7 +494,7 @@ async function startBot() {
                     } else {
                         updateStatus(`Error: Could not find text box in modal! Refreshing page...`, tweet);
                         await randomDelay(2000, 3000);
-                        window.location.reload();
+                        await forceReload();
                         return;
                     }
                 } else {
@@ -500,7 +514,7 @@ async function startBot() {
             updateStatus(`Fatal Error: ${error.message}\nRefreshing page...`);
             console.error(error);
             await randomDelay(2000, 3000);
-            window.location.reload();
+            await forceReload();
             return;
         }
     }
