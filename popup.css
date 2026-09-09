@@ -140,8 +140,8 @@ body.light-mode .logo-img { box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
     letter-spacing: -0.4px; color: var(--text-primary);
 }
 .app-subtitle {
-    margin: 0; font-size: 0.65rem; color: var(--text-secondary);
-    font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px;
+    margin: 0; font-size: 0.6rem; color: var(--text-secondary);
+    font-weight: 600; letter-spacing: 0.2px; white-space: nowrap;
 }
 
 .theme-toggle-btn {
