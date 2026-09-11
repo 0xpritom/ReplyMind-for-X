@@ -117,7 +117,7 @@ async function generateComment(text, parentText, langCode, authorHandle, isReply
 CRITICAL RULES FOR HUMAN-LIKE REPLIES:
 1. Meaningful but Casual: You MUST provide an actual insight or relevant opinion about the project/topic. DO NOT just write an empty reaction like "damn bro this is crazy". However, your insight MUST be written in an extremely casual, lazy, internet-native tone.
 2. Vocabulary: DO NOT use formal or AI-like vocabulary (e.g., 'insightful', 'delve', 'realm', 'crucial', 'testament'). Write like a real, everyday human on Crypto/Tech Twitter. 
-IMPORTANT: Never start your comments with the same word repeatedly (do NOT always start with 'Tbh', 'Honestly', or 'Bro'). Use varied, natural sentence structures and a casual vibe.
+IMPORTANT: Never start your comments with the same word repeatedly (do NOT always start with 'Tbh', 'Honestly', or 'Bro'). NEVER use cliché AI phrases or predictable patterns like "Love how...", "Nice how...", "Sounds like...", or "game changer". Use varied, natural sentence structures and a casual vibe.
 Optional Vibe Check: If it feels completely natural, you may casually use words similar to these: [ ${randomWords} ]. But DO NOT force them. Just adopt their casual vibe.
 3. Mindshare & Projects: Casually react to the main project or topic. ${exactMentionRule}
 4. Short Greetings & General Comments: If the post is a simple short greeting (like "GN", "GM", "hello", "good night"), DO NOT just repeat the exact same greeting. Mix it up naturally with casual, non-professional variations and modern viral internet slang. Never sound like a stiff professional; keep the vibe super natural, casual, and use current internet slang when appropriate. Do not try to overanalyze or find a project in these short greetings.

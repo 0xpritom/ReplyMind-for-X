@@ -429,10 +429,53 @@ async function startBot() {
                     await randomDelay(800, 1200);
                     
                     let textBox = null;
+                    let replyRestricted = false;
                     for (let i = 0; i < 20; i++) { // Poll every 500ms for up to 10 seconds
                         textBox = document.querySelector('[data-testid="tweetTextarea_0"]');
                         if (textBox) break;
+                        
+                        // Check for restricted reply modal
+                        const dialogs = document.querySelectorAll('[role="dialog"]');
+                        for (const dialog of dialogs) {
+                            if (dialog.innerText.includes('Who can reply?') || dialog.innerText.includes('Only some accounts can reply')) {
+                                replyRestricted = true;
+                                break;
+                            }
+                        }
+                        if (replyRestricted) break;
+
                         await sleep(500);
+                    }
+                    
+                    if (replyRestricted) {
+                        updateStatus(`Skipping: Comment option is closed for this tweet.`, tweet);
+                        console.log("Comment option is closed. Modal detected.");
+                        
+                        // Dismiss the modal
+                        const gotItBtn = Array.from(document.querySelectorAll('[role="button"]')).find(b => b.innerText.includes('Got it'));
+                        if (gotItBtn) {
+                            simulateClick(gotItBtn);
+                            await randomDelay(500, 1000);
+                        } else {
+                            const closeBtn = document.querySelector('[aria-label="Close"]');
+                            if (closeBtn) {
+                                simulateClick(closeBtn);
+                                await randomDelay(500, 1000);
+                            }
+                        }
+
+                        // Like the tweet since we couldn't reply
+                        const likeBtn = tweet.querySelector('[data-testid="like"]');
+                        if (likeBtn) {
+                            updateStatus(`Clicking like button instead...`, tweet);
+                            simulateClick(likeBtn);
+                            await randomDelay(500, 1000);
+                        }
+                        
+                        // Scroll down
+                        window.scrollBy({ top: window.innerHeight * 0.6, behavior: 'smooth' });
+                        await randomDelay(1000, 3000);
+                        break; // Break the inner loop to fetch a fresh list of tweets
                     }
                     
                     if (textBox) {
