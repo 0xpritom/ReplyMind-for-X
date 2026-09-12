@@ -8,6 +8,8 @@ document.addEventListener('DOMContentLoaded', () => {
     const statusText = document.getElementById('status-text');
     const statusDot = document.getElementById('status-dot');
     
+    const waitTimeInput = document.getElementById('wait-time');
+    
     // Theme elements
     const themeToggleBtn = document.getElementById('theme-toggle');
     const themeIconSun = document.getElementById('theme-icon-sun');
@@ -61,7 +63,7 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     // Load saved settings
-    chrome.storage.local.get(['apiKey', 'apiKeys', 'enabled', 'kolFilter', 'influenceScore', 'likeMode', 'actionMode', 'isLightMode'], (result) => {
+    chrome.storage.local.get(['apiKey', 'apiKeys', 'enabled', 'kolFilter', 'influenceScore', 'likeMode', 'actionMode', 'isLightMode', 'waitTime'], (result) => {
         if (result.apiKeys) {
             apiKeyInput.value = result.apiKeys;
         } else if (result.apiKey) {
@@ -70,6 +72,9 @@ document.addEventListener('DOMContentLoaded', () => {
         if (result.kolFilter) toggleKol.checked = result.kolFilter;
         if (result.influenceScore) scoreInput.value = result.influenceScore;
         else scoreInput.value = "10"; // default
+        
+        if (result.waitTime) waitTimeInput.value = result.waitTime;
+        else waitTimeInput.value = "";
         
         let mode = result.actionMode;
         if (!mode) {
@@ -97,9 +102,10 @@ document.addEventListener('DOMContentLoaded', () => {
         const enabled = toggleBot.checked;
         const kolFilter = toggleKol.checked;
         const influenceScore = parseInt(scoreInput.value) || 10;
+        const waitTime = waitTimeInput.value.trim();
         const actionMode = currentActionMode;
 
-        chrome.storage.local.set({ apiKey, apiKeys: apiKey, enabled, kolFilter, influenceScore, actionMode }, () => {
+        chrome.storage.local.set({ apiKey, apiKeys: apiKey, enabled, kolFilter, influenceScore, actionMode, waitTime }, () => {
             messageEl.textContent = 'Settings saved successfully!';
             messageEl.classList.add('show');
             updateUI(enabled);

@@ -141,13 +141,15 @@ function simulateClick(element) {
 
 // Load settings on startup
 let repliedHistory = [];
+let waitTimeStr = "";
 
-chrome.storage.local.get(['enabled', 'repliedHistory', 'kolFilter', 'influenceScore', 'likeMode', 'actionMode'], (res) => {
+chrome.storage.local.get(['enabled', 'repliedHistory', 'kolFilter', 'influenceScore', 'likeMode', 'actionMode', 'waitTime'], (res) => {
     isEnabled = res.enabled || false;
     kolFilter = res.kolFilter || false;
     influenceScoreThreshold = res.influenceScore || 10;
     actionMode = res.actionMode || (res.likeMode ? 'both' : 'reply');
     repliedHistory = res.repliedHistory || [];
+    waitTimeStr = res.waitTime || "";
     if (isEnabled && !isRunning) startBot();
 });
 
@@ -165,6 +167,9 @@ chrome.storage.onChanged.addListener((changes) => {
     }
     if (changes.actionMode !== undefined) {
         actionMode = changes.actionMode.newValue;
+    }
+    if (changes.waitTime !== undefined) {
+        waitTimeStr = changes.waitTime.newValue;
     }
 });
 
@@ -584,10 +589,35 @@ async function startBot() {
                     await randomDelay(3000, 3000);
                 }
                 
-                updateStatus(`Cooling down... (Waiting 1-3s)`);
+                let waitMin = 1000;
+                let waitMax = 3000;
+                
+                if (waitTimeStr) {
+                    if (waitTimeStr.includes('-')) {
+                        const parts = waitTimeStr.split('-');
+                        const w1 = parseInt(parts[0].trim());
+                        const w2 = parseInt(parts[1].trim());
+                        if (!isNaN(w1) && !isNaN(w2)) {
+                            waitMin = Math.min(w1, w2) * 1000;
+                            waitMax = Math.max(w1, w2) * 1000;
+                        }
+                    } else {
+                        const w = parseInt(waitTimeStr.trim());
+                        if (!isNaN(w)) {
+                            waitMin = w * 1000;
+                            waitMax = w * 1000;
+                        }
+                    }
+                }
+                
+                const chosenDelay = Math.floor(Math.random() * (waitMax - waitMin + 1)) + waitMin;
+                const chosenDelaySec = Math.floor(chosenDelay / 1000);
+                
+                updateStatus(`Cooling down... (Waiting ${chosenDelaySec}s)`);
+                
                 // Scroll down visually after a comment to adjust viewport and move to next content
                 window.scrollBy({ top: window.innerHeight * 0.6, behavior: 'smooth' });
-                await randomDelay(1000, 3000);
+                await randomDelay(chosenDelay, chosenDelay);
                 
                 break; // STRICT FIX: Break the inner loop to fetch a fresh list of tweets, preventing detached DOM errors
             }

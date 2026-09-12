@@ -64,9 +64,10 @@ async function generateComment(text, parentText, langCode, authorHandle, isReply
         memoryInstruction = `\nMEMORY/RELATIONSHIP: You have interacted with this user (@${authorHandle}) before! Your last interaction with them was: "${userMemory[authorHandle]}". If it fits naturally, subtly acknowledge this past interaction, but DO NOT use repetitive greetings (like "good to see u again"). Keep it varied and focus mostly on their new post.`;
     }
 
+    const invalidLangs = ['unknown', 'und', 'qme', 'zxx', 'mul', 'art'];
     let languageInstruction = `CRITICAL RULE: The original post was written in this language: "${langCode}". You MUST write your reply entirely in that exact language (e.g., if it says Japanese or 'ja', you must reply in Japanese).`;
-    if (!langCode || langCode === 'unknown') {
-        languageInstruction = `CRITICAL RULE: You must write the comment in the EXACT SAME LANGUAGE as the original post.`;
+    if (!langCode || invalidLangs.includes(langCode.toLowerCase())) {
+        languageInstruction = `CRITICAL RULE: You must write the comment in the EXACT SAME LANGUAGE as the original post. If the post is just a short acronym like "GM", "GN", or "hello", reply in English or natural internet slang.`;
     }
     
     // (Removed old contradictory mentionInstruction logic)

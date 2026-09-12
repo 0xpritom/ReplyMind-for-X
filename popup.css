@@ -237,7 +237,7 @@ input:checked + .slider:before { transform: translateX(18px); }
 
 /* Number Input */
 .number-input-group { display: flex; align-items: center; gap: 8px; }
-#influence-score {
+#influence-score, #wait-time {
     width: 44px; padding: 6px; border-radius: 8px;
     border: 1px solid var(--border-color); background: var(--input-bg);
     color: var(--text-primary); text-align: center;
@@ -245,7 +245,8 @@ input:checked + .slider:before { transform: translateX(18px); }
     transition: all 0.3s;
     box-shadow: inset 0 2px 4px rgba(0,0,0,0.1);
 }
-#influence-score:focus { border-color: var(--accent-color); box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.3); }
+#wait-time { width: 80px; }
+#influence-score:focus, #wait-time:focus { border-color: var(--accent-color); box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.3); }
 
 /* Mode Buttons */
 .mode-buttons {
