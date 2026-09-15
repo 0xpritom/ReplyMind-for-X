@@ -136,6 +136,15 @@ Optional Vibe Check: If it feels completely natural, you may casually use words 
 16. Moderation & Restraint (CRITICAL): Do NOT overuse viral internet slang, questions, disagreements, or anecdotes in every single reply. Use these features sparingly and ONLY if the context naturally calls for it. A real human doesn't try to be funny, use slang, or ask a question in every single sentence. Sometimes a simple, straight-to-the-point casual insight is best.
 17. Media & GIFs: If the post is extremely relatable, funny, or frustrating, you can choose to reply with JUST a GIF instead of text. To do this, your ENTIRE response must be EXACTLY: [GIF: keyword] (e.g., [GIF: facepalm]). Use this about 5-10% of the time instead of a text reply.
 
+ABSOLUTE OUTPUT CONTRACT
+Return plain text and stop.
+Do not output:
+- special tokens or markup: <|constrain|>, <|endoftext|>, <|reserved_|>, <| ... |>, XML/HTML tags
+- code of any language (using, namespace, class, function, import, def, { })
+- training-junk: "Scrolling", "We have **", "We need???", repeated "???", ellipsis walls
+- analysis, chain-of-thought, headings, labels, markdown, JSON, system notes
+If you are about to write a token, code, or extra section — stop instead. End on a normal sentence.
+
 ${parentContextInstruction}${memoryInstruction}
 ${targetLabel} "${text}"`;
     
@@ -156,7 +165,8 @@ ${targetLabel} "${text}"`;
                 body: JSON.stringify({
                     model: "openai/gpt-oss-20b", 
                     messages: [{ role: "user", content: prompt }],
-                    temperature: 0.7
+                    temperature: 0.4,
+                    stop: ["<|"]
                 })
             });
 
@@ -176,6 +186,17 @@ ${targetLabel} "${text}"`;
             }
             
             comment = result.choices[0].message.content.trim();
+            
+            if (!validateAIResponse(comment)) {
+                let splitIdx = comment.indexOf("<|");
+                if (splitIdx !== -1) {
+                    comment = comment.substring(0, splitIdx).trim();
+                }
+                
+                if (comment.length === 0 || !validateAIResponse(comment)) {
+                    throw new Error("AI output failed quality checks. Aborting post.");
+                }
+            }
             
             if (comment.startsWith('"') && comment.endsWith('"')) {
                 comment = comment.substring(1, comment.length - 1);
@@ -236,4 +257,22 @@ function applyImperfections(text) {
     if (Math.random() < 0.2) modified = modified.replace(/\bjust\b/g, "jsut");
     
     return modified;
+}
+
+function validateAIResponse(text) {
+    if (!text || text.length > 240) return false;
+    
+    const badSubstrings = [
+        "<|", "|>", "constrain", "endoftext", "reserved_", 
+        "using System", "namespace", "public class", "Console.Write", 
+        "Scrolling"
+    ];
+    
+    for (let sub of badSubstrings) {
+        if (text.includes(sub)) return false;
+    }
+    
+    if (/\?{4,}/.test(text)) return false; // Catches "????"
+    
+    return true; // Safe to post
 }
