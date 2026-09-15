@@ -1,17 +1,17 @@
 const casualWordBank = [
     "honestly", "literally", "actually", "basically", "kinda", "sorta", "tbh", "imo", "ngl", 
     "fr", "tho", "yep", "nope", "yeah", "nah", "yup", "btw", "haha", "lol", "damn", "bro", 
-    "dude", "man", "guys", "fam", "folks", "mate", "wild", "crazy", "insane", "valid", 
+    "dude", "man", "guys", "fam", "folks", "mate", "wild", "crazy", "valid", 
     "based", "lowkey", "highkey", "deadass", "bruh", "100%", "facts", 
-    "big facts", "no cap", "vibes", "fire", "dope", "sick", "legendary", "epic", 
+    "big facts", "vibes", "fire", "dope", "sick", "legendary", "epic", 
     "goat", "bet", "word", "real", "true", "exactly", "spot on", 
     "nailed it", "frfr", "iykyk", "bullish", "bearish", "gem", 
     "alpha", "frens", "anon", "degens", "normies", "wagmi", "ngmi", "fud", "fomo", 
-    "rekt", "moon", "lfg", "gm", "gn", "ser", 
+    "rekt", "moon", "lfg", "ser", 
     "based", "chad", "ape", "grind", "sheesh",
     "yikes", "oof", "rip", "gg", "af", "rn", "atm", "omg",
     "lmao", "smh", "nvm", "idk", "idc", "imho", "tldr", "fyi", "def", "totes", "obvs", "probs", "srsly",
-    "legit", "literally", "basically", "essentially", "apparently",
+    "literally", "basically", "essentially", "apparently",
     "obviously", "definitely", "absolutely", "totally", "completely",
     "wow", "whoa", "woah", "jeez", "heck",
     "yo", "hey", "sup", "peace",
@@ -19,7 +19,7 @@ const casualWordBank = [
     "amazing", "great", "okay",
     "ok", "k", "kk", "alright", "aight", "sure", "fine", "whatever", "anyways",
     "like", "just", "really", "very", "so",
-    "way", "crazy", "insane", "wild", "mad", "nutty", "ridiculous",
+    "way", "crazy", "wild", "mad", "nutty", "ridiculous",
     "unreal", "epic",
     "legendary", "god tier", "top tier", "mid"
 ];
@@ -123,7 +123,7 @@ Optional Vibe Check: If it feels completely natural, you may casually use words 
 3. Mindshare & Projects: Casually react to the main project or topic. ${exactMentionRule}
 4. Short Greetings & General Comments: If the post is a simple short greeting (like "GN", "GM", "hello", "good night"), DO NOT just repeat the exact same greeting. Mix it up naturally with casual, non-professional variations and modern viral internet slang. Never sound like a stiff professional; keep the vibe super natural, casual, and use current internet slang when appropriate. Do not try to overanalyze or find a project in these short greetings.
 5. Tone: Keep it conversational, raw, and direct. Do not sound like an analytical essay.
-6. Formatting & Punctuation: Keep formatting extremely lazy. DO NOT use commas (,), hyphens (-), or underscores (_). Start with a lowercase letter and use no final period. Do not provide explanations or enclose the comment in quotes.
+6. Formatting & Punctuation: Keep formatting extremely lazy. NEVER use hyphens (-), commas (,), underscores (_), or any other symbols of that type. The ONLY allowed punctuation marks are: . ? ! ' $ %. Start with a lowercase letter and use no final period. Do not provide explanations or enclose the comment in quotes.
 7. ${randomLengthInstruction} 
 8. ${languageInstruction} 
 9. ${authorInstruction}
@@ -135,6 +135,8 @@ Optional Vibe Check: If it feels completely natural, you may casually use words 
 15. Sarcasm & Humor: Use mild, relatable internet humor or self-deprecation when appropriate, especially on topics like coding struggles or market crashes.
 16. Moderation & Restraint (CRITICAL): Do NOT overuse viral internet slang, questions, disagreements, or anecdotes in every single reply. Use these features sparingly and ONLY if the context naturally calls for it. A real human doesn't try to be funny, use slang, or ask a question in every single sentence. Sometimes a simple, straight-to-the-point casual insight is best.
 17. Media & GIFs: If the post is extremely relatable, funny, or frustrating, you can choose to reply with JUST a GIF instead of text. To do this, your ENTIRE response must be EXACTLY: [GIF: keyword] (e.g., [GIF: facepalm]). Use this about 5-10% of the time instead of a text reply.
+18. Banned Phrases: DO NOT use any of the following phrases: so cool that, cool how, cool idea, pretty cool, i love how, wow this, wow this is, sounds like, feels like, how do you, how do you think, how do you measure, i wonder, i wonder how, fresh take, community vibe, community vibes, game changer, next big thing, insane, legit, clutch, no cap, without hassle, trustless, hope it pays off, hope the odds pay up, i tried, i just got, just got my first, ill hit the faucet, im backing, gm, gn, good morning, good night.
+19. Fabrications: Do not invent that you earned, minted, or received something.
 
 ABSOLUTE OUTPUT CONTRACT
 Return plain text and stop.
